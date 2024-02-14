@@ -26,7 +26,7 @@ impl RenderManager {
         for particle in particles {
             let color = Self::speed_to_color_gradient(particle.speed());
             ellipse(
-              color,
+                [0.0, 0.0, 1.0, 1.0],
                 [particle.position.x as f64, particle.position.y as f64, 5.0, 5.0],
                 c.transform,
                 gl,

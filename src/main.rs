@@ -18,7 +18,7 @@ fn main() {
         let opengl = OpenGL::V3_2;
         const WINDOW_WIDTH: f64 = 800.0;
         const WINDOW_HEIGHT: f64 = 600.0;
-        const PARTICLE_COUNT: i32 = 4000;
+        const PARTICLE_COUNT: i32 = 1000;
 
         // Create a Glutin window.
         let mut window: Window = WindowSettings::new("Particle Simulation", [WINDOW_WIDTH, WINDOW_HEIGHT])
@@ -30,6 +30,7 @@ fn main() {
         // Create a new game and run it.
         let mut simulation = FluidSimulationApp::new(PARTICLE_COUNT);
         let mut renderer = RenderManager::new(GlGraphics::new(opengl));
+
         let mut events = Events::new(EventSettings::new());
         while let Some(e) = events.next(&mut window) {
             if let Some(args) = e.render_args() {
