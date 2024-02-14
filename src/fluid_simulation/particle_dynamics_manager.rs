@@ -41,7 +41,7 @@ impl ParticleDynamicsManager {
     }
 
     fn update_velocity(&self, particle: &mut Particle) {
-      let gravity: f32 = if self.is_gravity_on { 0.0005 } else { 0.0 };
+      let gravity: f32 = if self.is_gravity_on { 0.1 } else { 0.0 };
       let calculated_resistance = self.calculate_resistance(particle);
       
       particle.velocity.y += gravity + calculated_resistance.y;

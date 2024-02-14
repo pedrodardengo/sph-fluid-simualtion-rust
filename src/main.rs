@@ -1,4 +1,4 @@
-mod fluid_simulation;
+pub mod fluid_simulation;
 
 extern crate glutin_window;
 extern crate graphics;
@@ -18,7 +18,7 @@ fn main() {
         let opengl = OpenGL::V3_2;
         const WINDOW_WIDTH: f64 = 800.0;
         const WINDOW_HEIGHT: f64 = 600.0;
-        const PARTICLE_COUNT: i32 = 200;
+        const PARTICLE_COUNT: i32 = 4000;
 
         // Create a Glutin window.
         let mut window: Window = WindowSettings::new("Particle Simulation", [WINDOW_WIDTH, WINDOW_HEIGHT])
@@ -31,7 +31,6 @@ fn main() {
         let mut app = FluidSimulationApp::new(PARTICLE_COUNT, GlGraphics::new(opengl));
     
         let mut events = Events::new(EventSettings::new());
-        
         while let Some(e) = events.next(&mut window) {
             if let Some(args) = e.render_args() {
                 app.render(&args);
@@ -40,6 +39,7 @@ fn main() {
             if let Some(args) = e.update_args() {
                 app.update(&args);
             }
+            app.handle_event(e);
         }
 
 }

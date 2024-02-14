@@ -1,6 +1,7 @@
 use vector2d::Vector2D;
 use rand::Rng;
 
+#[derive(Clone)]
 pub struct Particle {
     pub position: Vector2D<f32>,
     pub velocity: Vector2D<f32>,
