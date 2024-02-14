@@ -1,7 +1,7 @@
 pub mod fluid_simulation;
+pub mod graphics;
 
 extern crate glutin_window;
-extern crate graphics;
 extern crate opengl_graphics;
 extern crate piston;
 
@@ -11,7 +11,7 @@ use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderEvent, UpdateEvent};
 use piston::window::WindowSettings;
 use fluid_simulation::fluid_simulation_app::FluidSimulationApp;
-
+use graphics::render_manager::RenderManager;
 
 fn main() {
         // Change this to OpenGL::V2_1 if not working.
@@ -28,18 +28,17 @@ fn main() {
             .unwrap();
     
         // Create a new game and run it.
-        let mut app = FluidSimulationApp::new(PARTICLE_COUNT, GlGraphics::new(opengl));
-    
+        let mut simulation = FluidSimulationApp::new(PARTICLE_COUNT);
+        let mut renderer = RenderManager::new(GlGraphics::new(opengl));
         let mut events = Events::new(EventSettings::new());
         while let Some(e) = events.next(&mut window) {
             if let Some(args) = e.render_args() {
-                app.render(&args);
+                renderer.render(&args, simulation.particles.clone());
             }
     
             if let Some(args) = e.update_args() {
-                app.update(&args);
+                simulation.update(&args);
             }
-            app.handle_event(e);
+            simulation.handle_event(e);
         }
-
 }
