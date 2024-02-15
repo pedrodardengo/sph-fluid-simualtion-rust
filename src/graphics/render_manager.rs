@@ -26,7 +26,7 @@ impl RenderManager {
         for particle in particles {
             let color = Self::speed_to_color_gradient(particle.speed());
             ellipse(
-                [0.0, 0.0, 1.0, 1.0],
+                color,
                 [particle.position.x as f64, particle.position.y as f64, 5.0, 5.0],
                 c.transform,
                 gl,
@@ -36,7 +36,7 @@ impl RenderManager {
   }
 
   fn speed_to_color_gradient(speed: f32) -> [f32; 4] {
-    const MAX_SPEED: f32 = 10.0;
+    const MAX_SPEED: f32 = 1800.0;
     let ratio: f32 = speed / MAX_SPEED;
     let normalized = (ratio * 256.0 * 4.0) as i32;
     let region = (normalized / 256) as i32;

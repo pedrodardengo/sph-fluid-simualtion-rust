@@ -27,6 +27,10 @@ impl Particle {
         }
     }
 
+    pub fn get_predicted_position(&self) -> Vector2D<f32> {
+        self.position + self.velocity * 1.0/120.0
+    }
+
     pub fn speed(&self) -> f32 {
         self.velocity.length()
     }
