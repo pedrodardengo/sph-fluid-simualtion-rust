@@ -54,12 +54,19 @@ pub struct FluidSimulationApp {
 
 impl FluidSimulationApp {
 
-  pub fn new(particle_count: i32, delta_time: f32) -> Self {
+  pub fn new() -> Self {
+      let particle_count = 1000;
+      let delta_time = 1.0/120.0;
+      let pressure_multiplier: f32 = 7.0;
+      let target_density: f32 = 1.0;
+      let smoothing_radius: f32 = 10.0;
+      let viscosity: f32 = 0.003;
+      
       let particles: Vec<Particle> = (0..particle_count)
           .map(|_| Particle::new())
           .collect();
       let dynamics_manager = ParticleDynamicsManager::new(true, delta_time);
-      let smoothed_interaction = SmoothedInteraction::new(7.0, 1.0, 10.0, 0.003);
+      let smoothed_interaction = SmoothedInteraction::new(pressure_multiplier, target_density, smoothing_radius, viscosity);
       FluidSimulationApp {
           particles,
           dynamics_manager,
