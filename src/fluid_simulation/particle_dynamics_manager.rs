@@ -18,6 +18,7 @@ impl ParticleDynamicsManager {
     pub fn execute_dynamics(&self, particle: &mut Particle) {
         self.update_velocity(particle);
         self.update_position(particle);
+        self.apply_boundary_conditions(particle);
     }
 
     fn update_velocity(&self, particle: &mut Particle) {
@@ -27,6 +28,9 @@ impl ParticleDynamicsManager {
 
     fn update_position(&self, particle: &mut Particle) {
       particle.position += particle.velocity * self.delta_time;
+    }
+
+    fn apply_boundary_conditions(&self, particle: &mut Particle) {
       if particle.position.x < 3.0 {
         particle.position.x = 3.0;
         particle.velocity.x = -particle.velocity.x;
