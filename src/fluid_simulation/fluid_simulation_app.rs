@@ -75,7 +75,7 @@ impl FluidSimulationApp {
     }
     for particle in &mut self.particles {
       particle.pressure = self.smoothed_interaction.calculate_pressure(particle, &particles);
-      particle.viscosity_resistance = self.smoothed_interaction.calculate_viscosity(particle, &particles);
+      particle.pressure += self.smoothed_interaction.calculate_viscosity(particle, &particles);
       particle.pressure += self.external_attractor.get_external_attraction_force(particle)
     }
     for particle in &mut self.particles { 

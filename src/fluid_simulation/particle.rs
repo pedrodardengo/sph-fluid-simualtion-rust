@@ -7,8 +7,7 @@ pub struct Particle {
     pub velocity: Vector2D<f32>,
     pub mass: f32,
     pub local_density: f32,
-    pub pressure: Vector2D<f32>,
-    pub viscosity_resistance: Vector2D<f32>
+    pub pressure: Vector2D<f32>
 }
 
 impl Particle {
@@ -22,8 +21,7 @@ impl Particle {
             velocity,
             mass: 0.001,
             local_density: 0.01,
-            pressure: Vector2D::new(0.0, 0.0),
-            viscosity_resistance: Vector2D::new(0.0, 0.0)
+            pressure: Vector2D::new(0.0, 0.0)
         }
     }
 

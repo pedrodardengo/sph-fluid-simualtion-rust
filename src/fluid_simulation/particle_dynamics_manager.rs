@@ -22,7 +22,7 @@ impl ParticleDynamicsManager {
 
     fn update_velocity(&self, particle: &mut Particle) {
       let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 1920.0 } else { 0.0 });
-      particle.velocity += (gravity + (particle.pressure + particle.viscosity_resistance)/particle.local_density) * self.delta_time;
+      particle.velocity += (gravity + (particle.pressure)/particle.local_density) * self.delta_time;
     }
 
     fn update_position(&self, particle: &mut Particle) {
