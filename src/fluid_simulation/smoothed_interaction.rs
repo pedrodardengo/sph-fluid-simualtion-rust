@@ -71,9 +71,7 @@ impl SmoothedInteraction {
   }
 
   fn convert_density_to_pressure(&self, density: f32) -> f32 {
-    let density_difference = density - self.target_density;
-    let pressure = density_difference * self.pressure_multiplier;
-    pressure
+    self.pressure_multiplier *((density/self.target_density).powi(7) - 1.0)
   }
 
 }
