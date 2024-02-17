@@ -27,11 +27,9 @@ impl SmoothedInteraction {
       for iter_particle in particles {
           let relative_position = particle.position - iter_particle.position;
           let distance = relative_position.length();
-
-          if distance == 0.0 {
+          if distance == 0.0 || distance > self.smoothing_radius {
               continue;
           }
-
           let relative_position_unitary = relative_position / distance;
           let slope = spiky_smoothing_kernel_derivative(distance, self.smoothing_radius);
           let shared_pressure = self.calculate_shared_pressure(particle.local_density, iter_particle.local_density);
@@ -41,11 +39,14 @@ impl SmoothedInteraction {
   }
 
   pub fn calculate_density(&self, particle: &Particle, particles: &Vec<Particle>) -> f32 {
-    let mut density = 0.0;
+    let mut density = particle.mass * spiky_smoothing_kernel(0.0, self.smoothing_radius);
 
     for iter_particle in particles {
         let relative_position = particle.position - iter_particle.position;
         let distance = relative_position.length();
+        if distance == 0.0 || distance > self.smoothing_radius {
+          continue;
+        }
         let influence = spiky_smoothing_kernel(distance, self.smoothing_radius);
         density += iter_particle.mass * influence;
     }
@@ -59,6 +60,9 @@ impl SmoothedInteraction {
     for iter_particle in particles {
         let relative_position = particle.position - iter_particle.position;
         let distance = relative_position.length();
+        if distance == 0.0 || distance > self.smoothing_radius {
+          continue;
+        }
         let relative_speed = iter_particle.velocity - particle.velocity;
         let influence = viscosity_smoothing_kernel_second_derivative(distance, self.smoothing_radius);
         viscosit_force += relative_speed * self.viscosity * iter_particle.mass * influence / particle.local_density;

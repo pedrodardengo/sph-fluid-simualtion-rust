@@ -12,7 +12,7 @@ use piston::input::{RenderEvent, UpdateEvent};
 use piston::window::WindowSettings;
 use fluid_simulation::fluid_simulation_app::FluidSimulationApp;
 use graphics::render_manager::RenderManager;
-// use std::time::{Instant};
+// suse std::time::{Instant};
 
 fn main() {
         // Change this to OpenGL::V2_1 if not working.
@@ -28,7 +28,7 @@ fn main() {
             .unwrap();
     
         // Create a new game and run it.
-        let mut simulation = FluidSimulationApp::new();
+        let mut simulation = FluidSimulationApp::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
         let mut renderer = RenderManager::new(GlGraphics::new(opengl));
 
         let mut events = Events::new(EventSettings::new());

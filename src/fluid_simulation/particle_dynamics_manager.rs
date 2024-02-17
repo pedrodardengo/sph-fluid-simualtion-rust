@@ -1,5 +1,6 @@
-use vector2d::Vector2D;
 use crate::fluid_simulation::particle::Particle;
+use vector2d::Vector2D;
+
 
 pub struct ParticleDynamicsManager {
     is_gravity_on: bool,
@@ -18,7 +19,6 @@ impl ParticleDynamicsManager {
     pub fn execute_dynamics(&self, particle: &mut Particle) {
         self.update_velocity(particle);
         self.update_position(particle);
-        self.apply_boundary_conditions(particle);
     }
 
     pub fn update_velocity(&self, particle: &mut Particle) {
@@ -31,24 +31,5 @@ impl ParticleDynamicsManager {
       let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 1920.0 } else { 0.0 });
       let acceleration = gravity + (particle.pressure)/particle.local_density;
       particle.position += particle.velocity * self.delta_time + acceleration * 0.5 * self.delta_time.powi(2);
-    }
-
-    pub fn apply_boundary_conditions(&self, particle: &mut Particle) {
-      if particle.position.x < 3.0 {
-        particle.position.x = 3.0;
-        particle.velocity.x = -particle.velocity.x;
-      }
-      if particle.position.x > 800.0 - 3.0 {
-        particle.position.x = 800.0 - 3.0;
-        particle.velocity.x = -particle.velocity.x;
-      }
-      if particle.position.y < 3.0 {
-        particle.position.y = 3.0;
-        particle.velocity.y = -particle.velocity.y;
-      }
-      if particle.position.y > 600.0 - 3.0 {
-        particle.position.y = 600.0 - 3.0;
-        particle.velocity.y = -particle.velocity.y;
-      }
     }
 }
