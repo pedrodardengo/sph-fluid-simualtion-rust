@@ -15,7 +15,7 @@ impl Particle {
     pub fn new() -> Self {
       // Generate random position and velocity
       let mut rng = rand::thread_rng();
-      let position = Vector2D::new(rng.gen_range(0.0..400.0), rng.gen_range(0.0..600.0));
+      let position = Vector2D::new(rng.gen_range(0.0..200.0), rng.gen_range(0.0..600.0));
       let velocity = Vector2D::new(0.0,0.0);
         Particle {
             position,
