@@ -57,15 +57,15 @@ impl FluidSimulationApp {
   pub fn new() -> Self {
       let particle_count = 1000;
       let delta_time = 1.0/120.0;
-      let pressure_multiplier: f32 = 7.0;
-      let target_density: f32 = 1.0;
+      let pressure_multiplier: f32 = 8.0;
+      let target_density: f32 = 0.01;
       let smoothing_radius: f32 = 10.0;
-      let viscosity: f32 = 0.003;
+      let viscosity: f32 = 0.01;
       
       let particles: Vec<Particle> = (0..particle_count)
           .map(|_| Particle::new())
           .collect();
-      let dynamics_manager = ParticleDynamicsManager::new(true, delta_time);
+      let dynamics_manager = ParticleDynamicsManager::new(false, delta_time);
       let smoothed_interaction = SmoothedInteraction::new(pressure_multiplier, target_density, smoothing_radius, viscosity);
       FluidSimulationApp {
           particles,
@@ -76,17 +76,25 @@ impl FluidSimulationApp {
   }
 
   pub fn update(&mut self, _args: &UpdateArgs) {
-    let particles = self.particles.clone();
+    for particle in &mut self.particles { 
+      self.dynamics_manager.update_position(particle);
+      self.dynamics_manager.apply_boundary_conditions(particle);
+    }
+    let mut particles = self.particles.clone();
+
     for particle in &mut self.particles {
       particle.local_density = self.smoothed_interaction.calculate_density(particle, &particles);
     }
+    particles = self.particles.clone();
     for particle in &mut self.particles {
+      particle.previous_acceleration = particle.pressure;
       particle.pressure = self.smoothed_interaction.calculate_pressure(particle, &particles);
       particle.pressure += self.smoothed_interaction.calculate_viscosity(particle, &particles);
       particle.pressure += self.external_attractor.get_external_attraction_force(particle)
     }
+
     for particle in &mut self.particles { 
-        self.dynamics_manager.execute_dynamics(particle);
+        self.dynamics_manager.update_velocity(particle);
     }
   }
 

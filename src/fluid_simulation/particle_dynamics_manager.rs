@@ -21,16 +21,19 @@ impl ParticleDynamicsManager {
         self.apply_boundary_conditions(particle);
     }
 
-    fn update_velocity(&self, particle: &mut Particle) {
+    pub fn update_velocity(&self, particle: &mut Particle) {
       let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 1920.0 } else { 0.0 });
-      particle.velocity += (gravity + (particle.pressure)/particle.local_density) * self.delta_time;
+      let acceleration = gravity + (particle.pressure)/particle.local_density;
+      particle.velocity += (acceleration + particle.previous_acceleration) * self.delta_time * 0.5;
     }
 
-    fn update_position(&self, particle: &mut Particle) {
-      particle.position += particle.velocity * self.delta_time;
+    pub fn update_position(&self, particle: &mut Particle) {
+      let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 1920.0 } else { 0.0 });
+      let acceleration = gravity + (particle.pressure)/particle.local_density;
+      particle.position += particle.velocity * self.delta_time + acceleration * 0.5 * self.delta_time.powi(2);
     }
 
-    fn apply_boundary_conditions(&self, particle: &mut Particle) {
+    pub fn apply_boundary_conditions(&self, particle: &mut Particle) {
       if particle.position.x < 3.0 {
         particle.position.x = 3.0;
         particle.velocity.x = -particle.velocity.x;
