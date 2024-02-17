@@ -2,7 +2,8 @@ use crate::fluid_simulation::particle::Particle;
 pub struct CollisionManager {
   pub box_width: f32,
   pub box_height: f32,
-  is_dam_active: bool 
+  is_dam_active: bool,
+  particle_radius: f32
 }
 
 impl CollisionManager {
@@ -10,7 +11,8 @@ impl CollisionManager {
     CollisionManager {
       box_width,
       box_height,
-      is_dam_active: true
+      is_dam_active: true,
+      particle_radius: 3.0
     }
   }
 
@@ -26,27 +28,28 @@ impl CollisionManager {
   }
 
   fn apply_dam_boundary(&self, particle: &mut Particle) {
-    if particle.position.x > 200.0 - 3.0 {
-      particle.position.x = 200.0 - 3.0;
+    if particle.position.x > 200.0 - self.particle_radius {
+      particle.position.x = 200.0 - self.particle_radius;
       particle.velocity.x = -particle.velocity.x;
     }
   }
 
   fn apply_box_boundary(&self, particle: &mut Particle) {
-    if particle.position.x < 3.0 {
-      particle.position.x = 3.0;
+    let distance_from_wall = self.particle_radius * 3.0;
+    if particle.position.x < distance_from_wall {
+      particle.position.x = distance_from_wall;
       particle.velocity.x = -particle.velocity.x;
     }
-    if particle.position.x > self.box_width - 3.0 {
-      particle.position.x = self.box_width - 3.0;
+    if particle.position.x > self.box_width - distance_from_wall {
+      particle.position.x = self.box_width - distance_from_wall;
       particle.velocity.x = -particle.velocity.x;
     }
-    if particle.position.y < 3.0 {
-      particle.position.y = 3.0;
+    if particle.position.y < distance_from_wall {
+      particle.position.y = distance_from_wall;
       particle.velocity.y = -particle.velocity.y;
     }
-    if particle.position.y > self.box_height - 3.0 {
-      particle.position.y = self.box_height - 3.0;
+    if particle.position.y > self.box_height - distance_from_wall {
+      particle.position.y = self.box_height - distance_from_wall;
       particle.velocity.y = -particle.velocity.y;
     }
   }
