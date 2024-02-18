@@ -5,3 +5,4 @@ pub mod smoothed_interaction;
 pub mod smothing_kernels;
 pub mod external_attractor;
 pub mod collision_manager;
+pub mod cell_manager;

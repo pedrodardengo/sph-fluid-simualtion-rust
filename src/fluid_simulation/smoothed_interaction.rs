@@ -3,6 +3,10 @@ use crate::fluid_simulation::smothing_kernels::spiky_smoothing_kernel;
 use crate::fluid_simulation::smothing_kernels::spiky_smoothing_kernel_derivative;
 use crate::fluid_simulation::smothing_kernels::viscosity_smoothing_kernel_second_derivative;
 use vector2d::Vector2D;
+use rand::Rng;
+use super::smothing_kernels::poly6_smoothing_kernel;
+use super::smothing_kernels::sb_smoothing_kernel;
+use super::smothing_kernels::sb_smoothing_kernel_derivative;
 
 pub struct SmoothedInteraction {
   pressure_multiplier: f32,
@@ -23,49 +27,48 @@ impl SmoothedInteraction {
 }
 
   pub fn calculate_pressure(&self, particle: &Particle, particles: &Vec<Particle>) -> Vector2D<f32> {
+      let mut rng = rand::thread_rng();
       let mut property_gradient = Vector2D::new(0.0, 0.0);
       for iter_particle in particles {
-          let relative_position = particle.position - iter_particle.position;
+          if particle.id == iter_particle.id { continue; }
+          let mut relative_position = particle.position - iter_particle.position;
           let distance = relative_position.length();
-          if distance == 0.0 || distance > self.smoothing_radius {
-              continue;
+          if distance == 0.0 {
+            relative_position = Vector2D::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0));
           }
-          let relative_position_unitary = relative_position / distance;
-          let slope = spiky_smoothing_kernel_derivative(distance, self.smoothing_radius);
+          let slope = sb_smoothing_kernel_derivative(distance, self.smoothing_radius);
+          if slope == 0.0 { continue;}
           let shared_pressure = self.calculate_shared_pressure(particle.local_density, iter_particle.local_density);
-          property_gradient += relative_position_unitary * shared_pressure * slope * iter_particle.mass / iter_particle.local_density;
+          property_gradient += relative_position.normalise() * shared_pressure * slope * iter_particle.mass / iter_particle.local_density;
+          if f32::is_nan(property_gradient.x) {
+            println!("ssa")
+          }
       }
       property_gradient
   }
 
   pub fn calculate_density(&self, particle: &Particle, particles: &Vec<Particle>) -> f32 {
     let mut density = particle.mass * spiky_smoothing_kernel(0.0, self.smoothing_radius);
-
     for iter_particle in particles {
         let relative_position = particle.position - iter_particle.position;
         let distance = relative_position.length();
-        if distance == 0.0 || distance > self.smoothing_radius {
-          continue;
-        }
-        let influence = spiky_smoothing_kernel(distance, self.smoothing_radius);
+        let influence = poly6_smoothing_kernel(distance, self.smoothing_radius);
+        if influence == 0.0 { continue;}
         density += iter_particle.mass * influence;
     }
-
     density
   }
 
   pub fn calculate_viscosity(&self, particle: &Particle, particles: &Vec<Particle>) -> Vector2D<f32> {
     let mut viscosit_force = Vector2D::new(0.0, 0.0);
-
     for iter_particle in particles {
+      if particle.id == iter_particle.id { continue; }
         let relative_position = particle.position - iter_particle.position;
         let distance = relative_position.length();
-        if distance == 0.0 || distance > self.smoothing_radius {
-          continue;
-        }
-        let relative_speed = iter_particle.velocity - particle.velocity;
         let influence = viscosity_smoothing_kernel_second_derivative(distance, self.smoothing_radius);
-        viscosit_force += relative_speed * self.viscosity * iter_particle.mass * influence / particle.local_density;
+        if influence == 0.0 { continue;}
+        let relative_speed = iter_particle.velocity - particle.velocity;
+        viscosit_force += relative_speed * self.viscosity * iter_particle.mass * influence / iter_particle.local_density;
     }
     viscosit_force
   }
@@ -75,7 +78,7 @@ impl SmoothedInteraction {
   }
 
   fn convert_density_to_pressure(&self, density: f32) -> f32 {
-    self.pressure_multiplier *((density/self.target_density) - 1.0)
+    self.pressure_multiplier *( density - self.target_density)
   }
 
 }

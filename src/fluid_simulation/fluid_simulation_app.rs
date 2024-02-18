@@ -3,6 +3,7 @@ use crate::fluid_simulation::particle_dynamics_manager::ParticleDynamicsManager;
 use crate::fluid_simulation::smoothed_interaction::SmoothedInteraction;
 use crate::fluid_simulation::external_attractor::ExternalAttractor;
 use crate::fluid_simulation::collision_manager::CollisionManager;
+use crate::fluid_simulation::cell_manager::CellManager;
 use piston::ReleaseEvent;
 use piston::UpdateArgs;
 use piston::Button;
@@ -19,21 +20,22 @@ pub struct FluidSimulationApp {
   dynamics_manager: ParticleDynamicsManager,
   smoothed_interaction: SmoothedInteraction,
   external_attractor: ExternalAttractor,
-  collision_manager: CollisionManager
+  collision_manager: CollisionManager,
+  cell_manager: CellManager
 }
 
 impl FluidSimulationApp {
 
   pub fn new(window_width: f32, window_height: f32) -> Self {
-      let particle_count = 1000;
-      let delta_time = 1.0/160.0;
-      let pressure_multiplier: f32 = 10.0;
-      let target_density: f32 = 0.1;
-      let smoothing_radius: f32 = 12.0;
-      let viscosity: f32 = 0.01;
+      let particle_count = 2000;
+      let delta_time = 1.0/460.0;
+      let pressure_multiplier: f32 = 1600.4;
+      let target_density: f32 = 0.001;
+      let smoothing_radius: f32 = 8.0;
+      let viscosity: f32 = 0.00;
       
       let particles: Vec<Particle> = (0..particle_count)
-          .map(|_| Particle::new())
+          .map(|index| Particle::new(index))
           .collect();
       let dynamics_manager = ParticleDynamicsManager::new(true, delta_time);
       let smoothed_interaction = SmoothedInteraction::new(pressure_multiplier, target_density, smoothing_radius, viscosity);
@@ -42,7 +44,8 @@ impl FluidSimulationApp {
           dynamics_manager,
           smoothed_interaction,
           external_attractor: ExternalAttractor::new(),
-          collision_manager: CollisionManager::new(window_width, window_height)
+          collision_manager: CollisionManager::new(window_width, window_height),
+          cell_manager: CellManager::new(particle_count)
       }
   }
 
@@ -51,6 +54,8 @@ impl FluidSimulationApp {
       self.dynamics_manager.update_position(particle);
       self.collision_manager.apply_boundary_conditions(particle);
     }
+
+
     let mut particles = self.particles.clone();
 
     for particle in &mut self.particles {
@@ -60,7 +65,7 @@ impl FluidSimulationApp {
     for particle in &mut self.particles {
       particle.previous_acceleration = particle.pressure;
       particle.pressure = self.smoothed_interaction.calculate_pressure(particle, &particles);
-      particle.pressure += self.smoothed_interaction.calculate_viscosity(particle, &particles);
+      //particle.pressure += self.smoothed_interaction.calculate_viscosity(particle, &particles);
       particle.pressure += self.external_attractor.get_external_attraction_force(particle)
     }
 
