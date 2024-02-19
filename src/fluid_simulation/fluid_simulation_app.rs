@@ -12,7 +12,7 @@ use piston::MouseButton;
 use piston::Event;
 use crate::piston::PressEvent;
 use vector2d::Vector2D;
-
+use rand::Rng;
 
 
 pub struct FluidSimulationApp {
@@ -26,54 +26,62 @@ pub struct FluidSimulationApp {
 
 impl FluidSimulationApp {
 
-  pub fn new(window_width: f32, window_height: f32) -> Self {
-      let particle_count = 2000;
+  pub fn new(box_dimensions: [i32; 2]) -> Self {
+      let mut rng = rand::thread_rng();
+      let particle_count = 1000;
       let delta_time = 1.0/460.0;
-      let pressure_multiplier: f32 = 1600.4;
-      let target_density: f32 = 0.001;
-      let smoothing_radius: f32 = 8.0;
-      let viscosity: f32 = 0.00;
-      
-      let particles: Vec<Particle> = (0..particle_count)
-          .map(|index| Particle::new(index))
-          .collect();
-      let dynamics_manager = ParticleDynamicsManager::new(true, delta_time);
-      let smoothed_interaction = SmoothedInteraction::new(pressure_multiplier, target_density, smoothing_radius, viscosity);
+      let pressure_multiplier: f32 = 60.4;
+      let target_density: f32 = 1.1;
+      let smoothing_radius: f32 = 10.0;
+      let viscosity: f32 = 0.6;
+      let particles = (0..particle_count).map(
+        |index| 
+        Particle::new(
+          index, 
+          Vector2D::new(
+            rng.gen_range(0.0..(200 as f32)), 
+            rng.gen_range(0.0..(box_dimensions[1] as f32))
+          )
+        )
+      ).collect();
       FluidSimulationApp {
           particles,
-          dynamics_manager,
-          smoothed_interaction,
+          dynamics_manager: ParticleDynamicsManager::new(true, delta_time),
+          smoothed_interaction: SmoothedInteraction::new(pressure_multiplier, target_density, smoothing_radius, viscosity),
           external_attractor: ExternalAttractor::new(),
-          collision_manager: CollisionManager::new(window_width, window_height),
-          cell_manager: CellManager::new(particle_count)
+          collision_manager: CollisionManager::new(box_dimensions),
+          cell_manager: CellManager::new(particle_count as i32, box_dimensions, smoothing_radius)
       }
   }
 
   pub fn update(&mut self, _args: &UpdateArgs) {
-    for particle in &mut self.particles { 
+    for index in 0..self.particles.len() {
+      let particle = &mut self.particles[index];
       self.dynamics_manager.update_position(particle);
       self.collision_manager.apply_boundary_conditions(particle);
     }
 
-
+    self.cell_manager.update(&mut self.particles);
     let mut particles = self.particles.clone();
-
-    for particle in &mut self.particles {
-      particle.local_density = self.smoothed_interaction.calculate_density(particle, &particles);
+    for index in 0..self.particles.len() {
+      let particle = &mut self.particles[index];
+      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
+      particle.local_density = self.smoothed_interaction.calculate_density(particle, &adjacente_particles);
     }
     particles = self.particles.clone();
-    for particle in &mut self.particles {
-      particle.previous_acceleration = particle.pressure;
-      particle.pressure = self.smoothed_interaction.calculate_pressure(particle, &particles);
-      //particle.pressure += self.smoothed_interaction.calculate_viscosity(particle, &particles);
-      particle.pressure += self.external_attractor.get_external_attraction_force(particle)
+    for index in 0..self.particles.len() {
+      let particle = &mut self.particles[index];
+      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
+      particle.acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
+      particle.acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
+      particle.acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
+
     }
 
     for particle in &mut self.particles { 
         self.dynamics_manager.update_velocity(particle);
     }
   }
-
 
   pub fn handle_event(&mut self, event: Event) {
     if let Some(Button::Keyboard(Key::G)) = event.press_args() {

@@ -28,7 +28,7 @@ fn main() {
             .unwrap();
     
         // Create a new game and run it.
-        let mut simulation = FluidSimulationApp::new(WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32);
+        let mut simulation = FluidSimulationApp::new([WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32]);
         let mut renderer = RenderManager::new(GlGraphics::new(opengl));
 
         let mut events = Events::new(EventSettings::new());

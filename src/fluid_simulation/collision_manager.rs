@@ -7,10 +7,10 @@ pub struct CollisionManager {
 }
 
 impl CollisionManager {
-  pub fn new(box_width: f32, box_height: f32) -> Self {
+  pub fn new(box_dimensions: [i32; 2]) -> Self {
     CollisionManager {
-      box_width,
-      box_height,
+      box_width: box_dimensions[0] as f32,
+      box_height: box_dimensions[1] as f32,
       is_dam_active: true,
       particle_radius: 3.0
     }

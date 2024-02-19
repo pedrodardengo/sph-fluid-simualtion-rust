@@ -26,7 +26,7 @@ impl SmoothedInteraction {
     }
 }
 
-  pub fn calculate_pressure(&self, particle: &Particle, particles: &Vec<Particle>) -> Vector2D<f32> {
+  pub fn calculate_acceleration_due_to_pressure(&self, particle: &Particle, particles: &Vec<Particle>) -> Vector2D<f32> {
       let mut rng = rand::thread_rng();
       let mut property_gradient = Vector2D::new(0.0, 0.0);
       for iter_particle in particles {
@@ -40,11 +40,8 @@ impl SmoothedInteraction {
           if slope == 0.0 { continue;}
           let shared_pressure = self.calculate_shared_pressure(particle.local_density, iter_particle.local_density);
           property_gradient += relative_position.normalise() * shared_pressure * slope * iter_particle.mass / iter_particle.local_density;
-          if f32::is_nan(property_gradient.x) {
-            println!("ssa")
-          }
       }
-      property_gradient
+      property_gradient / particle.local_density
   }
 
   pub fn calculate_density(&self, particle: &Particle, particles: &Vec<Particle>) -> f32 {
@@ -52,7 +49,7 @@ impl SmoothedInteraction {
     for iter_particle in particles {
         let relative_position = particle.position - iter_particle.position;
         let distance = relative_position.length();
-        let influence = poly6_smoothing_kernel(distance, self.smoothing_radius);
+        let influence = sb_smoothing_kernel(distance, self.smoothing_radius);
         if influence == 0.0 { continue;}
         density += iter_particle.mass * influence;
     }
@@ -70,7 +67,7 @@ impl SmoothedInteraction {
         let relative_speed = iter_particle.velocity - particle.velocity;
         viscosit_force += relative_speed * self.viscosity * iter_particle.mass * influence / iter_particle.local_density;
     }
-    viscosit_force
+    viscosit_force / particle.local_density
   }
 
   fn calculate_shared_pressure(&self, density_a: f32, density_b: f32) -> f32 {

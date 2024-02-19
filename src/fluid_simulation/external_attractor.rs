@@ -21,7 +21,7 @@ impl ExternalAttractor {
     self.position = position;
   }
 
-  pub fn get_external_attraction_force(&self, particle: &Particle) -> Vector2D<f32> {
+  pub fn get_external_attraction_acceleration(&self, particle: &Particle) -> Vector2D<f32> {
     if !self.active {
       return Vector2D::new(0.0, 0.0)
     }
@@ -31,6 +31,6 @@ impl ExternalAttractor {
       return Vector2D::new(0.0, 0.0)
     }
     //-(vetcor_to_input_point.normalise() - particle.velocity * (1.0 - distance_to_input_point / self.radius))
-    (vetcor_to_input_point.normalise())/100.0 - particle.velocity * (1.0 - distance_to_input_point / self.radius)/10000.0
+    ((vetcor_to_input_point.normalise())/100.0 - particle.velocity * (1.0 - distance_to_input_point / self.radius)/10000.0) / particle.local_density
   }
 }
