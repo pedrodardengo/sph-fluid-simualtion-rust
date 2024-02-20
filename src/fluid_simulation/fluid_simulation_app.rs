@@ -30,7 +30,7 @@ impl FluidSimulationApp {
       let mut rng = rand::thread_rng();
       let particle_count = 1000;
       let delta_time = 1.0/460.0;
-      let pressure_multiplier: f32 = 60.4;
+      let pressure_multiplier: f32 = 80.4;
       let target_density: f32 = 1.1;
       let smoothing_radius: f32 = 10.0;
       let viscosity: f32 = 0.6;
@@ -75,7 +75,6 @@ impl FluidSimulationApp {
       particle.acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
       particle.acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
       particle.acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
-
     }
 
     for particle in &mut self.particles { 
