@@ -17,8 +17,8 @@ use graphics::render_manager::RenderManager;
 fn main() {
         // Change this to OpenGL::V2_1 if not working.
         let opengl = OpenGL::V3_2;
-        const WINDOW_WIDTH: f64 = 800.0;
-        const WINDOW_HEIGHT: f64 = 600.0;
+        const WINDOW_WIDTH: f64 = 1000.0;
+        const WINDOW_HEIGHT: f64 = 800.0;
 
         // Create a Glutin window.
         let mut window: Window = WindowSettings::new("Particle Simulation", [WINDOW_WIDTH, WINDOW_HEIGHT])

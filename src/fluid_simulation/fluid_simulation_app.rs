@@ -28,18 +28,18 @@ impl FluidSimulationApp {
 
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 1000;
-      let delta_time = 1.0/460.0;
+      let particle_count = 2000;
+      let delta_time = 1.0/310.0;
       let pressure_multiplier: f32 = 80.4;
-      let target_density: f32 = 1.1;
-      let smoothing_radius: f32 = 10.0;
+      let target_density: f32 = 0.6;
+      let smoothing_radius: f32 = 9.0;
       let viscosity: f32 = 0.6;
       let particles = (0..particle_count).map(
         |index| 
         Particle::new(
           index, 
           Vector2D::new(
-            rng.gen_range(0.0..(200 as f32)), 
+            rng.gen_range(0.0..(300 as f32)), 
             rng.gen_range(0.0..(box_dimensions[1] as f32))
           )
         )
@@ -67,6 +67,9 @@ impl FluidSimulationApp {
       let particle = &mut self.particles[index];
       let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
       particle.local_density = self.smoothed_interaction.calculate_density(particle, &adjacente_particles);
+      if f32::is_nan(particle.local_density) {
+        println!("SAs")
+      }
     }
     particles = self.particles.clone();
     for index in 0..self.particles.len() {
@@ -96,5 +99,7 @@ impl FluidSimulationApp {
       self.external_attractor.active = false;
     }
   }
+
+
 
 }

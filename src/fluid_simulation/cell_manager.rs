@@ -114,6 +114,6 @@ impl CellManager {
   }
 
   pub fn cell_coord_to_cell_key(&self, coord: Vector2D<i32>) -> usize {
-    ((coord.x * self.number_of_columns) + coord.y) as usize
+    ((coord.x * self.number_of_rows) + coord.y) as usize
   }
 }
