@@ -12,7 +12,7 @@ use piston::input::{RenderEvent, UpdateEvent};
 use piston::window::WindowSettings;
 use fluid_simulation::fluid_simulation_app::FluidSimulationApp;
 use graphics::render_manager::RenderManager;
-//use std::time::{Instant};
+// use std::time::Instant;
 
 fn main() {
         // Change this to OpenGL::V2_1 if not working.
@@ -37,13 +37,12 @@ fn main() {
                 //let start = Instant::now();
                 renderer.render(&args, simulation.particles.clone());
                 //println!("Render {:?}", start.elapsed());
- 
             }
     
             if let Some(args) = e.update_args() {
-                // let start = Instant::now();
+                //let start = Instant::now();
                 simulation.update(&args);
-                // println!("Update {:?}", start.elapsed());
+                //println!("Update {:?}", start.elapsed());
             }
             simulation.handle_event(e);
         }

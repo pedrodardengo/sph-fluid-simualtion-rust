@@ -1,10 +1,8 @@
 use crate::fluid_simulation::particle::Particle;
 use crate::fluid_simulation::smothing_kernels::spiky_smoothing_kernel;
-use crate::fluid_simulation::smothing_kernels::spiky_smoothing_kernel_derivative;
 use crate::fluid_simulation::smothing_kernels::viscosity_smoothing_kernel_second_derivative;
 use vector2d::Vector2D;
 use rand::Rng;
-use super::smothing_kernels::poly6_smoothing_kernel;
 use super::smothing_kernels::sb_smoothing_kernel;
 use super::smothing_kernels::sb_smoothing_kernel_derivative;
 
@@ -75,7 +73,7 @@ impl SmoothedInteraction {
   }
 
   fn convert_density_to_pressure(&self, density: f32) -> f32 {
-    self.pressure_multiplier *( density - self.target_density)
+    - self.pressure_multiplier *( density - self.target_density)
   }
 
 }

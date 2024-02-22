@@ -14,7 +14,6 @@ use crate::piston::PressEvent;
 use vector2d::Vector2D;
 use rand::Rng;
 
-
 pub struct FluidSimulationApp {
   pub particles: Vec<Particle>,
   dynamics_manager: ParticleDynamicsManager,
@@ -28,12 +27,12 @@ impl FluidSimulationApp {
 
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 1000;
-      let delta_time = 1.0/60.0;
-      let pressure_multiplier: f32 = 1.0;
-      let target_density: f32 = 0.6;
-      let smoothing_radius: f32 = 8.0;
-      let viscosity: f32 = 0.1;
+      let particle_count = 6000;
+      let delta_time = 1.0/30.0;
+      let pressure_multiplier: f32 = 90000.0;
+      let target_density: f32 = 0.00003;
+      let smoothing_radius: f32 = 14.0;
+      let viscosity: f32 = 0.008;
       let particles = (0..particle_count).map(
         |index| 
         Particle::new(
@@ -60,16 +59,12 @@ impl FluidSimulationApp {
       self.dynamics_manager.update_position(particle);
       self.collision_manager.apply_boundary_conditions(particle);
     }
-
     self.cell_manager.update(&mut self.particles);
     let mut particles = self.particles.clone();
     for index in 0..self.particles.len() {
       let particle = &mut self.particles[index];
       let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
       particle.local_density = self.smoothed_interaction.calculate_density(particle, &adjacente_particles);
-      if f32::is_nan(particle.local_density) {
-        println!("SAs")
-      }
     }
     particles = self.particles.clone();
     for index in 0..self.particles.len() {
@@ -78,10 +73,7 @@ impl FluidSimulationApp {
       particle.acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
       particle.acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
       particle.acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
-    }
-
-    for particle in &mut self.particles { 
-        self.dynamics_manager.update_velocity(particle);
+      self.dynamics_manager.update_velocity(particle);
     }
   }
 

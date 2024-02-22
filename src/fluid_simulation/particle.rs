@@ -21,10 +21,10 @@ impl Particle {
             cell_key: 0,
             position,
             velocity,
-            mass: 0.001,
+            mass: 0.0008,
             local_density: 0.01,
             acceleration: Vector2D::new(0.0, 0.0),
-            previous_acceleration: Vector2D::new(0.0, 0.0),
+            previous_acceleration: Vector2D::new(0.0, 0.0)
         }
     }
 

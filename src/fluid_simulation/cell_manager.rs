@@ -30,6 +30,7 @@ impl CellManager {
   }
 
   pub fn update(&mut self, particles: &mut Vec<Particle>) {
+    self.spatial_lookup = (0..self.particle_count).map(|_| (self.number_of_cells as usize, 0)).collect();
     for particle in particles { 
       self.to_spacial_lookup(particle)
     }
@@ -88,7 +89,6 @@ impl CellManager {
   }
 
   pub fn get_particle_indexes_from_cell(&self, cell_key: usize) -> Vec<usize> {
-    // ERRROR
     let mut particle_indexes: Vec<usize> = Vec::new();
     let mut spatial_lookup_cell: usize = cell_key;
     let mut spatial_lookup_index = self.starting_indices[cell_key];
