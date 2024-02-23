@@ -28,9 +28,9 @@ impl FluidSimulationApp {
 
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 6000;
-      let delta_time = 1.0/60.0;
-      let pressure_multiplier: f32 = 220000.0;
+      let particle_count = 4000;
+      let delta_time = 1.0/30.0;
+      let pressure_multiplier: f32 = 150000.0;
       let target_density: f32 = 0.00002;
       let smoothing_radius: f32 = 14.0;
       let viscosity: f32 = 0.008;

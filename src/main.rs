@@ -34,15 +34,15 @@ fn main() {
         let mut events = Events::new(EventSettings::new());
         while let Some(e) = events.next(&mut window) {
             if let Some(args) = e.render_args() {
-                let start = Instant::now();
+                //let start = Instant::now();
                 renderer.render(&args, simulation.particles.clone());
-                println!("Render {:?}", start.elapsed());
+                //println!("Render {:?}", start.elapsed());
             }
     
             if let Some(args) = e.update_args() {
-                let start = Instant::now();
+                //let start = Instant::now();
                 simulation.update(&args);
-                println!("Update {:?}", start.elapsed());
+                //println!("Update {:?}", start.elapsed());
             }
             simulation.handle_event(e);
         }
