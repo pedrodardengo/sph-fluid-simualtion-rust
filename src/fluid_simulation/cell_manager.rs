@@ -38,14 +38,14 @@ impl CellManager {
     self.generate_start_indices();
   }
 
-  pub fn get_adjancet_particles(&self, particle: Particle, particles: &Vec<Particle>) -> Vec<Particle> {
+  pub fn get_adjacent_particles(&self, particle_position: Vector2D<f32>) -> Vec<usize> {
     let mut adjacent_particle_indexes: Vec<usize> = vec![];
-    let adjacent_cell_keys = self.get_adjacent_cell_keys_from_position(particle.position);
+    let adjacent_cell_keys = self.get_adjacent_cell_keys_from_position(particle_position);
     for adjacent_cell_key in adjacent_cell_keys {
       let particle_indexes = self.get_particle_indexes_from_cell(adjacent_cell_key);
       adjacent_particle_indexes.extend(particle_indexes)
     }
-    adjacent_particle_indexes.iter().map(|index| particles[*index].clone()).collect()
+    adjacent_particle_indexes
   }
 
   fn to_spacial_lookup(&mut self, particle: &mut Particle) {
@@ -81,7 +81,7 @@ impl CellManager {
     
     adjacent_cell_coords = adjacent_cell_coords
         .iter()
-        .cloned() // Clone the elements to create owned copies
+        .cloned()
         .filter(|coord| coord.x >= 0 && coord.x < self.number_of_columns && coord.y >= 0 && coord.y < self.number_of_rows)
         .collect();
       let adjacent_cell_keys = adjacent_cell_coords.iter().map(|coord| self.cell_coord_to_cell_key(*coord)).collect();

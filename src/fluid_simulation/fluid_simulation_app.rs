@@ -13,6 +13,7 @@ use piston::Event;
 use crate::piston::PressEvent;
 use vector2d::Vector2D;
 use rand::Rng;
+use std::time::Instant;
 
 pub struct FluidSimulationApp {
   pub particles: Vec<Particle>,
@@ -28,9 +29,9 @@ impl FluidSimulationApp {
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
       let particle_count = 6000;
-      let delta_time = 1.0/30.0;
-      let pressure_multiplier: f32 = 90000.0;
-      let target_density: f32 = 0.00003;
+      let delta_time = 1.0/60.0;
+      let pressure_multiplier: f32 = 220000.0;
+      let target_density: f32 = 0.00002;
       let smoothing_radius: f32 = 14.0;
       let viscosity: f32 = 0.008;
       let particles = (0..particle_count).map(
@@ -60,21 +61,29 @@ impl FluidSimulationApp {
       self.collision_manager.apply_boundary_conditions(particle);
     }
     self.cell_manager.update(&mut self.particles);
-    let mut particles = self.particles.clone();
-    for index in 0..self.particles.len() {
-      let particle = &mut self.particles[index];
-      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
-      particle.local_density = self.smoothed_interaction.calculate_density(particle, &adjacente_particles);
+    
+    //let start = Instant::now();
+
+    for particle_index in 0..self.particles.len() {
+      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
+      self.particles[particle_index].local_density = self.smoothed_interaction.calculate_density(
+        particle_index,  
+        adjacente_particles_indices,
+        &self.particles
+      );
     }
-    particles = self.particles.clone();
-    for index in 0..self.particles.len() {
-      let particle = &mut self.particles[index];
-      let adjacente_particles: Vec<Particle> = self.cell_manager.get_adjancet_particles(particle.clone(), &particles);
-      particle.acceleration = self.smoothed_interaction.calculate_acceleration_due_to_pressure(particle, &adjacente_particles);
-      particle.acceleration += self.smoothed_interaction.calculate_viscosity(particle, &adjacente_particles);
-      particle.acceleration += self.external_attractor.get_external_attraction_acceleration(particle);
-      self.dynamics_manager.update_velocity(particle);
+    
+    //println!("Density {:?}", start.elapsed());
+
+    for particle_index in 0..self.particles.len() {
+      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
+      let mut acceleration = self.smoothed_interaction.calculate_pressure(particle_index, &adjacente_particles_indices, &self.particles);
+      acceleration += self.smoothed_interaction.calculate_viscosity(particle_index, &adjacente_particles_indices, &self.particles);
+      acceleration += self.external_attractor.get_external_attraction_acceleration(&mut self.particles[particle_index]);
+      self.particles[particle_index].acceleration = acceleration;
+      self.dynamics_manager.update_velocity(&mut self.particles[particle_index]);
     }
+
   }
 
   pub fn handle_event(&mut self, event: Event) {
