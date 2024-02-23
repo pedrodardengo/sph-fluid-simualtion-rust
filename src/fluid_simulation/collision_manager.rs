@@ -28,8 +28,8 @@ impl CollisionManager {
   }
 
   fn apply_dam_boundary(&self, particle: &mut Particle) {
-    if particle.position.x > 300.0 - self.particle_radius {
-      particle.position.x = 300.0 - self.particle_radius;
+    if particle.position.x > 600.0 - self.particle_radius {
+      particle.position.x = 600.0 - self.particle_radius;
       particle.velocity.x = -particle.velocity.x;
     }
   }

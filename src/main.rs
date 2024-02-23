@@ -35,7 +35,7 @@ fn main() {
         while let Some(e) = events.next(&mut window) {
             if let Some(args) = e.render_args() {
                 //let start = Instant::now();
-                renderer.render(&args, simulation.particles.clone());
+                renderer.render(&args, &simulation.particles);
                 //println!("Render {:?}", start.elapsed());
             }
     

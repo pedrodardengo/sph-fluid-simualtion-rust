@@ -19,7 +19,7 @@ impl RenderManager {
   }
 
 
-  pub fn render(&mut self, args: &RenderArgs, particles: Vec<Particle>) {
+  pub fn render(&mut self, args: &RenderArgs, particles: &Vec<Particle>) {
     const BLACK_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
     self.gl.draw(args.viewport(), |c, gl| {
         clear(BLACK_COLOR, gl);

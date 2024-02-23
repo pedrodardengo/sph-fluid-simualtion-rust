@@ -13,7 +13,7 @@ use piston::Event;
 use crate::piston::PressEvent;
 use vector2d::Vector2D;
 use rand::Rng;
-use std::time::Instant;
+use rayon::prelude::*;
 
 pub struct FluidSimulationApp {
   pub particles: Vec<Particle>,
@@ -28,7 +28,7 @@ impl FluidSimulationApp {
 
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 4000;
+      let particle_count = 10000;
       let delta_time = 1.0/30.0;
       let pressure_multiplier: f32 = 150000.0;
       let target_density: f32 = 0.00002;
@@ -39,7 +39,7 @@ impl FluidSimulationApp {
         Particle::new(
           index, 
           Vector2D::new(
-            rng.gen_range(0.0..(300 as f32)), 
+            rng.gen_range(0.0..(600 as f32)), 
             rng.gen_range(0.0..(box_dimensions[1] as f32))
           )
         )
@@ -55,34 +55,43 @@ impl FluidSimulationApp {
   }
 
   pub fn update(&mut self, _args: &UpdateArgs) {
-    for index in 0..self.particles.len() {
-      let particle = &mut self.particles[index];
+
+    self.particles.par_iter_mut().for_each(|particle| {
       self.dynamics_manager.update_position(particle);
       self.collision_manager.apply_boundary_conditions(particle);
-    }
+    });
+
     self.cell_manager.update(&mut self.particles);
     
-    //let start = Instant::now();
-
-    for particle_index in 0..self.particles.len() {
-      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
-      self.particles[particle_index].local_density = self.smoothed_interaction.calculate_density(
-        particle_index,  
-        adjacente_particles_indices,
-        &self.particles
+    // let start = Instant::now();
+   let densities: Vec<f32> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
+      let adjacent_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
+      let density = self.smoothed_interaction.calculate_density(
+          particle_index,
+          adjacent_particles_indices,
+          &self.particles
       );
-    }
-    
+      density
+    }).collect();
+
+    self.particles.par_iter_mut().for_each(|particle| {
+      particle.local_density = densities[particle.id];
+    });
+
     //println!("Density {:?}", start.elapsed());
 
-    for particle_index in 0..self.particles.len() {
+    let accelerations: Vec<Vector2D<f32>> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
       let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
       let mut acceleration = self.smoothed_interaction.calculate_pressure(particle_index, &adjacente_particles_indices, &self.particles);
       acceleration += self.smoothed_interaction.calculate_viscosity(particle_index, &adjacente_particles_indices, &self.particles);
-      acceleration += self.external_attractor.get_external_attraction_acceleration(&mut self.particles[particle_index]);
-      self.particles[particle_index].acceleration = acceleration;
-      self.dynamics_manager.update_velocity(&mut self.particles[particle_index]);
-    }
+      acceleration += self.external_attractor.get_external_attraction_acceleration(&self.particles[particle_index]);
+      acceleration
+    }).collect();
+
+    self.particles.par_iter_mut().for_each(|particle| {
+      particle.acceleration = accelerations[particle.id];
+      self.dynamics_manager.update_velocity(particle);
+    });
 
   }
 
