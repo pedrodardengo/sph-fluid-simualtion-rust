@@ -38,14 +38,11 @@ impl CellManager {
     self.generate_start_indices();
   }
 
-  pub fn get_adjacent_particles(&self, particle_position: Vector2D<f32>) -> Vec<usize> {
-    let mut adjacent_particle_indexes: Vec<usize> = vec![];
-    let adjacent_cell_keys = self.get_adjacent_cell_keys_from_position(particle_position);
-    for adjacent_cell_key in adjacent_cell_keys {
-      let particle_indexes = self.get_particle_indexes_from_cell(adjacent_cell_key);
-      adjacent_particle_indexes.extend(particle_indexes)
-    }
-    adjacent_particle_indexes
+  pub fn get_adjacent_particles_indices(&self, particle_position: Vector2D<f32>) -> Vec<usize> {
+    self.get_adjacent_cell_keys_from_position(particle_position)
+      .into_iter()
+      .flat_map(|adjacent_cell_key| self.get_particle_indexes_from_cell(adjacent_cell_key))
+      .collect()
   }
 
   fn to_spacial_lookup(&mut self, particle: &mut Particle) {
@@ -56,13 +53,12 @@ impl CellManager {
   }
 
   fn generate_start_indices(&mut self) {
-    let mut starting_indices: Vec<usize> = vec![self.particle_count as usize; self.number_of_cells as usize];
-    for (sl_index, &(cell_key, _)) in self.spatial_lookup.iter().enumerate() {
-      if starting_indices[cell_key] == self.particle_count as usize {
-        starting_indices[cell_key] = sl_index;
+    self.starting_indices = vec![self.particle_count as usize; self.number_of_cells as usize];
+    self.spatial_lookup.iter().enumerate().for_each(|(sl_index, &(cell_key, _))| {
+      if self.starting_indices[cell_key] == self.particle_count as usize {
+          self.starting_indices[cell_key] = sl_index;
       }
-    }
-    self.starting_indices = starting_indices;
+    });
   }
 
   pub fn get_adjacent_cell_keys_from_position(&self, position: Vector2D<f32>) -> Vec<usize> {
