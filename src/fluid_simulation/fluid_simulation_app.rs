@@ -28,12 +28,12 @@ impl FluidSimulationApp {
 
   pub fn new(box_dimensions: [i32; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 10000;
-      let delta_time = 1.0/30.0;
+      let particle_count = 4000;
+      let delta_time = 1.0/60.0;
       let pressure_multiplier: f32 = 150000.0;
       let target_density: f32 = 0.00002;
       let smoothing_radius: f32 = 14.0;
-      let viscosity: f32 = 0.008;
+      let viscosity: f32 = 0.018;
       let particles = (0..particle_count).map(
         |index| 
         Particle::new(
@@ -65,7 +65,7 @@ impl FluidSimulationApp {
     
     // let start = Instant::now();
    let densities: Vec<f32> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
-      let adjacent_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
+      let adjacent_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
       let density = self.smoothed_interaction.calculate_density(
           particle_index,
           adjacent_particles_indices,
@@ -81,7 +81,7 @@ impl FluidSimulationApp {
     //println!("Density {:?}", start.elapsed());
 
     let accelerations: Vec<Vector2D<f32>> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
-      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles(self.particles[particle_index].position);
+      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
       let mut acceleration = self.smoothed_interaction.calculate_pressure(particle_index, &adjacente_particles_indices, &self.particles);
       acceleration += self.smoothed_interaction.calculate_viscosity(particle_index, &adjacente_particles_indices, &self.particles);
       acceleration += self.external_attractor.get_external_attraction_acceleration(&self.particles[particle_index]);
