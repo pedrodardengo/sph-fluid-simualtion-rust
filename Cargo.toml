@@ -7,10 +7,7 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.4"
-piston = "0.55.0"
-piston2d-graphics = "0.44.0"
-pistoncore-glutin_window = "0.72.0"
-piston2d-opengl_graphics = "0.83.0"
 vector2d = "2.2.0"
 rayon = "1.8.1"
 num_cpus = "1.16.0"
+minifb = "0.25.0"

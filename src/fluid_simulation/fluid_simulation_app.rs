@@ -4,13 +4,7 @@ use crate::fluid_simulation::smoothed_interaction::SmoothedInteraction;
 use crate::fluid_simulation::external_attractor::ExternalAttractor;
 use crate::fluid_simulation::collision_manager::CollisionManager;
 use crate::fluid_simulation::cell_manager::CellManager;
-use piston::ReleaseEvent;
-use piston::UpdateArgs;
-use piston::Button;
-use piston::Key;
-use piston::MouseButton;
-use piston::Event;
-use crate::piston::PressEvent;
+use minifb::{Key, MouseButton, Window};
 use vector2d::Vector2D;
 use rand::Rng;
 use rayon::prelude::*;
@@ -26,11 +20,11 @@ pub struct FluidSimulationApp {
 
 impl FluidSimulationApp {
 
-  pub fn new(box_dimensions: [i32; 2]) -> Self {
+  pub fn new(box_dimensions: [usize; 2]) -> Self {
       let mut rng = rand::thread_rng();
-      let particle_count = 4000;
+      let particle_count = 6000;
       let delta_time = 1.0/60.0;
-      let pressure_multiplier: f32 = 150000.0;
+      let pressure_multiplier: f32 = 220000.0;
       let target_density: f32 = 0.00002;
       let smoothing_radius: f32 = 14.0;
       let viscosity: f32 = 0.018;
@@ -54,7 +48,7 @@ impl FluidSimulationApp {
       }
   }
 
-  pub fn update(&mut self, _args: &UpdateArgs) {
+  pub fn update(&mut self) {
 
     self.particles.par_iter_mut().for_each(|particle| {
       self.dynamics_manager.update_position(particle);
@@ -63,12 +57,11 @@ impl FluidSimulationApp {
 
     self.cell_manager.update(&mut self.particles);
     
-    // let start = Instant::now();
    let densities: Vec<f32> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
-      let adjacent_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
+      let adjacente_particles_indices_iterator = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
       let density = self.smoothed_interaction.calculate_density(
           particle_index,
-          adjacent_particles_indices,
+          adjacente_particles_indices_iterator,
           &self.particles
       );
       density
@@ -78,12 +71,13 @@ impl FluidSimulationApp {
       particle.local_density = densities[particle.id];
     });
 
-    //println!("Density {:?}", start.elapsed());
-
     let accelerations: Vec<Vector2D<f32>> = (0..self.particles.len()).into_par_iter().map(|particle_index| {
-      let adjacente_particles_indices: Vec<usize> = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
-      let mut acceleration = self.smoothed_interaction.calculate_pressure(particle_index, &adjacente_particles_indices, &self.particles);
-      acceleration += self.smoothed_interaction.calculate_viscosity(particle_index, &adjacente_particles_indices, &self.particles);
+      let adjacente_particles_indices_iterator = self.cell_manager.get_adjacent_particles_indices(self.particles[particle_index].position);
+      let mut acceleration = self.smoothed_interaction.calculate_acceleration(
+        particle_index, 
+        adjacente_particles_indices_iterator, 
+        &self.particles
+      );
       acceleration += self.external_attractor.get_external_attraction_acceleration(&self.particles[particle_index]);
       acceleration
     }).collect();
@@ -95,17 +89,20 @@ impl FluidSimulationApp {
 
   }
 
-  pub fn handle_event(&mut self, event: Event) {
-    if let Some(Button::Keyboard(Key::G)) = event.press_args() {
+  pub fn handle_event(&mut self, window: &Window) {
+    if window.is_key_down(Key::G) {
         self.dynamics_manager.toggle_gravity();
     }
-    if let Some(Button::Keyboard(Key::D)) = event.press_args() {
+    if window.is_key_down(Key::D) {
       self.collision_manager.break_dam();
     }
-    if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
-      self.external_attractor.activate(Vector2D::new(400.0 as f32, 100.0 as f32));
+    if window.get_mouse_down(MouseButton::Left) {
+      let mouse_position = window.get_mouse_pos(minifb::MouseMode::Discard);
+      if let Some(mouse_position) = mouse_position {
+        self.external_attractor.activate(Vector2D::new(mouse_position.0, mouse_position.1));
+      }
     }
-    if let Some(Button::Mouse(MouseButton::Left)) = event.release_args() {
+    if !window.get_mouse_down(MouseButton::Left) {
       self.external_attractor.active = false;
     }
   }
