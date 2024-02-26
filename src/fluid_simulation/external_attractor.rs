@@ -12,7 +12,7 @@ impl ExternalAttractor {
         ExternalAttractor {
             position: Vector2D::new(0.0, 0.0),
             active: false,
-            radius: 100.0,
+            radius: 60.0,
         }
     }
 
@@ -32,7 +32,7 @@ impl ExternalAttractor {
         }
         //-(vetcor_to_input_point.normalise() - particle.velocity * (1.0 - distance_to_input_point / self.radius))
         ((vetcor_to_input_point.normalise()) / 100.0
-            - particle.velocity * (1.0 - distance_to_input_point / self.radius) / 10000.0)
+            - particle.velocity * (1.0 - distance_to_input_point / self.radius) / 50000.0)
             / particle.local_density
     }
 }

@@ -20,9 +20,9 @@ fn main() {
     while render_manager.window.is_open() && !render_manager.window.is_key_down(Key::Escape) {
         simulation.handle_event(&render_manager.window);
 
-        let start = Instant::now();
+        //let start = Instant::now();
         simulation.update(); // Update particle positions in state
-        println!("Update {:?}", start.elapsed());
+        //println!("Update {:?}", start.elapsed());
 
         //let start = Instant::now();
         render_manager.render(&simulation.particles);

@@ -21,12 +21,12 @@ pub struct FluidSimulationApp {
 impl FluidSimulationApp {
     pub fn new(box_dimensions: [usize; 2]) -> Self {
         let mut rng = rand::thread_rng();
-        let particle_count = 15000;
+        let particle_count = 6000;
         let delta_time = 1.0 / 30.0;
-        let pressure_multiplier: f32 = 90000.0;
-        let target_density: f32 = 0.00003;
-        let smoothing_radius: f32 = 14.0;
-        let viscosity: f32 = 0.008;
+        let pressure_multiplier: f32 = 110000.0;
+        let target_density: f32 = 0.00002;
+        let smoothing_radius: f32 = 16.0;
+        let viscosity: f32 = 0.06;
         let particles = (0..particle_count)
             .map(|index| {
                 Particle::new(
