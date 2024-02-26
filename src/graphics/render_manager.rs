@@ -60,7 +60,7 @@ impl RenderManager {
   }
 
   fn speed_to_color_gradient(speed: f32) -> u32 {
-    const MAX_SPEED: f32 = 400.0;
+    const MAX_SPEED: f32 = 4000.0;
     let ratio: f32 = speed / MAX_SPEED;
     let normalized = ratio * 256.0 * 4.0;
     let region = (normalized / 256.0) as i32;

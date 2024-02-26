@@ -1,15 +1,17 @@
 use crate::fluid_simulation::particle::Particle;
 use vector2d::Vector2D;
 
-
 pub struct ParticleDynamicsManager {
     is_gravity_on: bool,
-    delta_time: f32
+    delta_time: f32,
 }
 
 impl ParticleDynamicsManager {
     pub fn new(is_gravity_on: bool, delta_time: f32) -> Self {
-        ParticleDynamicsManager { is_gravity_on, delta_time }
+        ParticleDynamicsManager {
+            is_gravity_on,
+            delta_time,
+        }
     }
 
     pub fn toggle_gravity(&mut self) {
@@ -22,15 +24,17 @@ impl ParticleDynamicsManager {
     }
 
     pub fn update_velocity(&self, particle: &mut Particle) {
-      let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 98.8 } else { 0.0 });
-      let acceleration = gravity + particle.acceleration;
-      particle.velocity += (acceleration + particle.previous_acceleration) * self.delta_time * 0.5;
-      particle.previous_acceleration = acceleration
+        let gravity: Vector2D<f32> = Vector2D::new(0.0, if self.is_gravity_on { 9.8 } else { 0.0 });
+        let acceleration = gravity + particle.acceleration;
+        particle.velocity +=
+            (acceleration + particle.previous_acceleration) * self.delta_time * 0.5;
+        particle.previous_acceleration = acceleration
     }
 
     pub fn update_position(&self, particle: &mut Particle) {
-      let gravity: Vector2D<f32> =  Vector2D::new(0.0, if self.is_gravity_on { 98.8 } else { 0.0 });
-      let acceleration = gravity + particle.acceleration;
-      particle.position += particle.velocity * self.delta_time + acceleration * 0.5 * self.delta_time.powi(2);
+        let gravity: Vector2D<f32> = Vector2D::new(0.0, if self.is_gravity_on { 9.8 } else { 0.0 });
+        let acceleration = gravity + particle.acceleration;
+        particle.position +=
+            particle.velocity * self.delta_time + acceleration * 0.5 * self.delta_time.powi(2);
     }
 }
