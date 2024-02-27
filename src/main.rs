@@ -61,7 +61,7 @@ fn main() {
             counter += 1;
         }
 
-        simulation.handle_event(e);
+        simulation.handle_event(e, &window);
 
         if counter >= num_executions {
             // Calculate and print the average time

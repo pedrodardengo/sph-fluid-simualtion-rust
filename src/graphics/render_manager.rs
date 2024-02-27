@@ -7,7 +7,6 @@ use graphics::{
 };
 use opengl_graphics::GlGraphics;
 use piston::RenderArgs;
-use std::cmp::max;
 
 pub struct RenderManager {
     gl: GlGraphics,
@@ -88,7 +87,7 @@ impl RenderManager {
             let colors = particles
                 .iter()
                 .map(|particle| {
-                    let speed = Self::speed_to_color_gradient(particle.speed());
+                    let speed = speed_to_color_gradient(particle.speed());
                     [speed, speed, speed]
                 })
                 .flatten()
@@ -101,40 +100,20 @@ impl RenderManager {
             });
         });
     }
+}
 
-    fn speed_to_color_gradient(speed: f32) -> [f32; 4] {
-        const MAX_SPEED: f32 = 1000.0;
-        let ratio: f32 = speed / MAX_SPEED;
-        let normalized = (ratio * 256.0 * 4.0) as i32;
-        let region = (normalized / 256) as i32;
-        let x = normalized % 256;
-        let mut r = 0.0;
-        let mut g = 0.0;
-        let mut b = 0.0;
-        match region {
-            3 => {
-                r = 1.0;
-                g = (max(255 - x, 0) as f32) / 255.0;
-                b = 0.0;
-            }
-            2 => {
-                r = (max(x, 0) as f32) / 255.0;
-                g = 1.0;
-                b = 0.0;
-            }
-            1 => {
-                r = 0.0;
-                g = 1.0;
-                b = (max(255 - x, 0) as f32) / 255.0;
-            }
-            0 => {
-                r = 0.0;
-                g = (max(x, 0) as f32) / 255.0;
-                b = 1.0;
-            }
-            _ => {}
-        }
-
-        [r, g, b, 1.0]
+const INVERSED_MAX_SPEED: f32 = 1.0 / 800.0;
+const INVERSE_255: f32 = 1.0 / 255.0;
+fn speed_to_color_gradient(speed: f32) -> [f32; 4] {
+    let ratio: f32 = speed * INVERSED_MAX_SPEED;
+    let normalized = (ratio * 1024.0) as i32;
+    let region = (normalized / 256) as i32;
+    let x = (normalized % 256) as f32;
+    match region {
+        3 => [1.0, f32::max(255.0 - x, 0.0) * INVERSE_255, 0.0, 1.0],
+        2 => [f32::max(x, 0.0) * INVERSE_255, 1.0, 0.0, 1.0],
+        1 => [0.0, 1.0, f32::max(255.0 - x, 0.0) * INVERSE_255, 1.0],
+        0 => [0.0, f32::max(x, 0.0) * INVERSE_255, 1.0, 1.0],
+        _ => [1.0, 0.0, 0.0, 1.0],
     }
 }
