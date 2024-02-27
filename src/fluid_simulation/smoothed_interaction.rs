@@ -33,6 +33,7 @@ impl SmoothedInteraction {
         particle_index: usize,
         adjacent_particle_indices: impl Iterator<Item = usize>,
         particles: &Vec<Particle>,
+        local_densities: &Vec<f32>
     ) -> Vector2D<f32> {
         let mut acceleration = Vector2D::new(0.0, 0.0);
         for iter_particle_index in adjacent_particle_indices {
@@ -53,14 +54,14 @@ impl SmoothedInteraction {
                 continue;
             }
             let shared_pressure = self.calculate_shared_pressure(
-                particles[particle_index].local_density,
-                particles[iter_particle_index].local_density,
+              local_densities[particle_index],
+              local_densities[iter_particle_index],
             );
             acceleration += relative_position.normalise()
                 * shared_pressure
                 * slope
                 * particles[iter_particle_index].mass
-                / particles[iter_particle_index].local_density;
+                / local_densities[iter_particle_index];
 
             // vicosity
             let relative_speed =
@@ -69,9 +70,9 @@ impl SmoothedInteraction {
                 viscosity_smoothing_kernel_second_derivative(distance, self.smoothing_radius);
             acceleration +=
                 relative_speed * self.viscosity * particles[iter_particle_index].mass * influence
-                    / particles[iter_particle_index].local_density;
+                    / local_densities[iter_particle_index];
         }
-        acceleration / particles[particle_index].local_density
+        acceleration / local_densities[particle_index]
     }
 
     pub fn calculate_density(

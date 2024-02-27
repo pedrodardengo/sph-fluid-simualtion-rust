@@ -1,99 +1,113 @@
-use std::cmp::max;
-
-use minifb::{Window, WindowOptions};
-
 use crate::fluid_simulation::particle::Particle;
+use opengl_graphics::GlGraphics;
+use piston::RenderArgs;
+use std::cmp::max;
+use graphics::{math::{Matrix2d, Vec2d}, triangulation::{tx, ty}, *};
+
 
 pub struct RenderManager {
-    pub window: Window,
-    buffer: Vec<u32>,
-    box_dimensions: [usize; 2],
+  gl: GlGraphics
 }
 
+fn stream_polygon_tri_list<E, F>(m: Matrix2d, mut polygon: E, mut f: F)
+where
+    E: Iterator<Item = Vec2d>,
+    F: FnMut(&[[f32; 2]]),
+{
+    let mut vertices: [[f32; 2]; 20000] = [[0.0; 2]; 20000];
+    let mut i = 0;
+    'read_vertices: loop {
+      let p = match polygon.next() {
+        None => break 'read_vertices,
+        Some(val) => val,
+    };
+        let ind_out = i;
+        vertices[ind_out] = [tx(m, p[0], p[1]), ty(m, p[0], p[1])];
+        i += 1;
+        // Buffer is full.
+        if (i + 1) > 20000 {
+            // Send chunk and start over.
+            f(&vertices[0..i]);
+            i = 0;
+        }
+    }
+
+    if i > 0 {
+        f(&vertices[0..i]);
+    }
+}
+
+fn with_polygon_tri_list<F>(m: Matrix2d, polygon: &[[f64; 2]], f: F)
+where
+    F: FnMut(&[[f32; 2]]),
+{
+    stream_polygon_tri_list(m, (0..polygon.len()).map(|i| polygon[i]), f);
+}
+
+
 impl RenderManager {
-    pub fn new(box_dimensions: [usize; 2]) -> Self {
-        let window = Window::new(
-            "Test - ESC to exit",
-            box_dimensions[0],
-            box_dimensions[1],
-            WindowOptions::default(),
-        )
-        .unwrap_or_else(|e| {
-            panic!("{}", e);
+
+  pub fn new(gl: GlGraphics) -> Self {
+    RenderManager {
+      gl
+    }
+  }
+
+
+  pub fn render(&mut self, args: &RenderArgs, particles: &Vec<Particle>) {
+    const BLACK_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+    self.gl.draw(args.viewport(), |c, gl| {
+        clear(BLACK_COLOR, gl);
+        let verts = particles.iter().map(|particle| {
+          [[particle.position.x as f64, particle.position.y as f64 + 3.0],
+          [particle.position.x as f64 + 3.0, particle.position.y as f64 - 3.0],
+          [particle.position.x as f64 - 3.0, particle.position.y as f64 - 3.0]]
+        }).flatten().collect::<Vec<_>>();
+
+        let colors = particles.iter().map(|particle| {
+          let speed = Self::speed_to_color_gradient(particle.speed());
+          [speed, speed, speed]
+        }).flatten().collect::<Vec<_>>();
+
+        gl.tri_list_c(&DrawState::default(), |f| {
+            with_polygon_tri_list(c.transform, verts.as_slice(), |vertices| f(vertices, colors.as_slice()))
         });
+    });
+  }
 
-        RenderManager {
-            window,
-            buffer: vec![0; box_dimensions[0] * box_dimensions[1]],
-            box_dimensions,
+  fn speed_to_color_gradient(speed: f32) -> [f32; 4] {
+    const MAX_SPEED: f32 = 1000.0;
+    let ratio: f32 = speed / MAX_SPEED;
+    let normalized = (ratio * 256.0 * 4.0) as i32;
+    let region = (normalized / 256) as i32;
+    let x = normalized % 256;
+    let mut r = 0.0;
+    let mut g = 0.0;
+    let mut b = 0.0;
+    match region {
+        3 => {
+            r = 1.0;
+            g = (max(255 - x, 0) as f32)/ 255.0;
+            b = 0.0;
         }
-    }
-
-    pub fn render(&mut self, particles: &Vec<Particle>) {
-        self.buffer.iter_mut().for_each(|pixel| *pixel = 0);
-        for particle in particles {
-            Self::draw_circle(&mut self.buffer, self.box_dimensions[0], particle, 2);
-            // Red color
+        2 => {
+            r = (max(x, 0) as f32) / 255.0;
+            g = 1.0;
+            b = 0.0;
         }
-        self.window
-            .update_with_buffer(&self.buffer, self.box_dimensions[0], self.box_dimensions[1])
-            .unwrap_or_else(|e| {
-                eprintln!("Error updating window: {}", e);
-            });
-    }
-
-    fn draw_circle(buffer: &mut [u32], width: usize, particle: &Particle, radius: isize) {
-        let center_x = particle.position.x as isize;
-        let center_y = particle.position.y as isize;
-        let color = Self::speed_to_color_gradient(particle.speed());
-        for y in (center_y - radius)..=(center_y + radius) {
-            for x in (center_x - radius as isize)..=(center_x + radius as isize) {
-                let distance_squared = (x - center_x).pow(2) + (y - center_y).pow(2);
-                if distance_squared <= radius.pow(2) {
-                    let index = (y * width as isize + x) as usize;
-                    buffer[index] = color;
-                }
-            }
+        1 => {
+            r = 0.0;
+            g = 1.0;
+            b = (max(255 - x, 0) as f32) / 255.0;
         }
-    }
-
-    fn speed_to_color_gradient(speed: f32) -> u32 {
-        const MAX_SPEED: f32 = 700.0;
-        let ratio: f32 = speed / MAX_SPEED;
-        let normalized = ratio * 256.0 * 4.0;
-        let region = (normalized / 256.0) as i32;
-        let x = normalized.round() as i32 % 256;
-        let mut red = 0;
-        let mut green = 0;
-        let mut blue = 0;
-        match region {
-            3 => {
-                red = 255;
-                green = max(255 - x, 0);
-                blue = 0;
-            }
-            2 => {
-                red = max(x, 0);
-                green = 255;
-                blue = 0;
-            }
-            1 => {
-                red = 0;
-                green = 255;
-                blue = max(255 - x, 0);
-            }
-            0 => {
-                red = 0;
-                green = max(x, 0);
-                blue = 255;
-            }
-            _ => {}
+        0 => {
+            r = 0.0;
+            g = (max(x, 0) as f32) / 255.0;
+            b = 1.0;
         }
-
-        Self::rgb_to_color_value(red, green, blue)
+        _ => {}
     }
 
-    fn rgb_to_color_value(red: i32, green: i32, blue: i32) -> u32 {
-        (255 << 24) | ((red as u32) << 16) | ((green as u32) << 8) | blue as u32
-    }
+    [r, g, b, 1.0]
+  } 
 }
