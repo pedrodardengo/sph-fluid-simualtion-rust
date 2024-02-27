@@ -33,7 +33,7 @@ impl SmoothedInteraction {
         particle_index: usize,
         adjacent_particle_indices: impl Iterator<Item = usize>,
         particles: &Vec<Particle>,
-        local_densities: &Vec<f32>
+        local_densities: &Vec<f32>,
     ) -> Vector2D<f32> {
         let mut acceleration = Vector2D::new(0.0, 0.0);
         for iter_particle_index in adjacent_particle_indices {
@@ -54,8 +54,8 @@ impl SmoothedInteraction {
                 continue;
             }
             let shared_pressure = self.calculate_shared_pressure(
-              local_densities[particle_index],
-              local_densities[iter_particle_index],
+                local_densities[particle_index],
+                local_densities[iter_particle_index],
             );
             acceleration += relative_position.normalise()
                 * shared_pressure

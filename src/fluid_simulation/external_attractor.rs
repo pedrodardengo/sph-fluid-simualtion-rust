@@ -21,7 +21,11 @@ impl ExternalAttractor {
         self.position = position;
     }
 
-    pub fn get_external_attraction_acceleration(&self, particle: &Particle, density: f32) -> Vector2D<f32> {
+    pub fn get_external_attraction_acceleration(
+        &self,
+        particle: &Particle,
+        density: f32,
+    ) -> Vector2D<f32> {
         if !self.active {
             return Vector2D::new(0.0, 0.0);
         }

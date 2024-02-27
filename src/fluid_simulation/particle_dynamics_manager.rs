@@ -18,12 +18,16 @@ impl ParticleDynamicsManager {
         self.is_gravity_on = !self.is_gravity_on;
     }
 
-    pub fn update_velocity(&self, particle: &mut Particle, acceleration: Vector2D<f32>, previous_acceleration: &mut Vector2D<f32>) {
+    pub fn update_velocity(
+        &self,
+        particle: &mut Particle,
+        acceleration: Vector2D<f32>,
+        previous_acceleration: &mut Vector2D<f32>,
+    ) {
         let gravity: Vector2D<f32> =
             Vector2D::new(0.0, if self.is_gravity_on { 490.0 } else { 0.0 });
         let acceleration = gravity + acceleration;
-        particle.velocity +=
-            (acceleration + *previous_acceleration) * self.delta_time * 0.5;
+        particle.velocity += (acceleration + *previous_acceleration) * self.delta_time * 0.5;
         *previous_acceleration = acceleration;
     }
 

@@ -6,7 +6,7 @@ pub struct Particle {
     pub cell_key: usize,
     pub position: Vector2D<f32>,
     pub velocity: Vector2D<f32>,
-    pub mass: f32
+    pub mass: f32,
 }
 
 impl Particle {
@@ -18,7 +18,7 @@ impl Particle {
             cell_key: 0,
             position,
             velocity,
-            mass: 0.0008
+            mass: 0.0008,
         }
     }
 
