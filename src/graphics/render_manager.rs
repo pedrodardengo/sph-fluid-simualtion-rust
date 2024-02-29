@@ -1,3 +1,4 @@
+use crate::fluid_simulation::config::Particles;
 use crate::fluid_simulation::particle::Particle;
 use graphics::rectangle::rectangle_by_corners;
 use graphics::{
@@ -59,7 +60,7 @@ impl RenderManager {
         })
     }
 
-    pub fn render(&mut self, args: &RenderArgs, particles: &Vec<Particle>) {
+    pub fn render(&mut self, args: &RenderArgs, particles: &Particles) {
         const BLACK_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
         self.gl.draw(args.viewport(), |c, gl| {
             let dims = rectangle_by_corners(100.0, 400.0, 200.0, 750.0);

@@ -1,6 +1,6 @@
 use super::smothing_kernels::sb_smoothing_kernel;
 use super::smothing_kernels::sb_smoothing_kernel_derivative;
-use crate::fluid_simulation::particle::Particle;
+use crate::fluid_simulation::config::{Densities, Particles};
 use crate::fluid_simulation::smothing_kernels::spiky_smoothing_kernel;
 use crate::fluid_simulation::smothing_kernels::viscosity_smoothing_kernel_second_derivative;
 use rand::Rng;
@@ -32,8 +32,8 @@ impl SmoothedInteraction {
         &self,
         particle_index: usize,
         adjacent_particle_indices: impl Iterator<Item = usize>,
-        particles: &Vec<Particle>,
-        local_densities: &Vec<f32>,
+        particles: &Particles,
+        densities: &Densities,
     ) -> Vector2D<f32> {
         let mut acceleration = Vector2D::new(0.0, 0.0);
         for iter_particle_index in adjacent_particle_indices {
@@ -54,14 +54,14 @@ impl SmoothedInteraction {
                 continue;
             }
             let shared_pressure = self.calculate_shared_pressure(
-                local_densities[particle_index],
-                local_densities[iter_particle_index],
+                densities[particle_index],
+                densities[iter_particle_index],
             );
             acceleration += relative_position.normalise()
                 * shared_pressure
                 * slope
                 * particles[iter_particle_index].mass
-                / local_densities[iter_particle_index];
+                / densities[iter_particle_index];
 
             // vicosity
             let relative_speed =
@@ -70,16 +70,16 @@ impl SmoothedInteraction {
                 viscosity_smoothing_kernel_second_derivative(distance, self.smoothing_radius);
             acceleration +=
                 relative_speed * self.viscosity * particles[iter_particle_index].mass * influence
-                    / local_densities[iter_particle_index];
+                    / densities[iter_particle_index];
         }
-        acceleration / local_densities[particle_index]
+        acceleration / densities[particle_index]
     }
 
     pub fn calculate_density(
         &self,
         particle_index: usize,
         adjacent_particle_indices: impl Iterator<Item = usize>,
-        particles: &Vec<Particle>,
+        particles: &Particles,
     ) -> f32 {
         let mut density =
             particles[particle_index].mass * spiky_smoothing_kernel(0.0, self.smoothing_radius);

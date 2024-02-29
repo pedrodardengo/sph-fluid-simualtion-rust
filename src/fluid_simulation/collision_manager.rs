@@ -1,5 +1,3 @@
-use vector2d::Vector2D;
-
 use crate::fluid_simulation::particle::Particle;
 pub struct CollisionManager {
     pub box_width: f32,

@@ -49,9 +49,10 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
-            let start = Instant::now();
+            //let start = Instant::now();
             renderer.render(&args, &simulation.particles);
-            total_elapsed_time += start.elapsed();
+            //total_elapsed_time += start.elapsed();
+            //counter += 1;
         }
 
         if let Some(_) = e.update_args() {

@@ -1,58 +1,56 @@
 use crate::fluid_simulation::cell_manager::CellManager;
 use crate::fluid_simulation::collision_manager::CollisionManager;
+use crate::fluid_simulation::config::{Accelerations, Densities, Particles, PARTICLE_COUNT};
 use crate::fluid_simulation::external_attractor::ExternalAttractor;
 use crate::fluid_simulation::particle::Particle;
 use crate::fluid_simulation::particle_dynamics_manager::ParticleDynamicsManager;
 use crate::fluid_simulation::smoothed_interaction::SmoothedInteraction;
-use piston::{Button, Event, Key, Motion, MouseButton, MouseCursorEvent, PressEvent, ReleaseEvent, Window, Input};
+use piston::{
+    Button, Event, Input, Key, Motion, MouseButton, MouseCursorEvent, PressEvent, ReleaseEvent,
+    Window,
+};
 use rand::Rng;
 use rayon::prelude::*;
 use vector2d::Vector2D;
 
 pub struct FluidSimulationApp {
-    pub particles: Vec<Particle>,
+    pub particles: Particles,
     dynamics_manager: ParticleDynamicsManager,
     smoothed_interaction: SmoothedInteraction,
     external_attractor: ExternalAttractor,
     collision_manager: CollisionManager,
     cell_manager: CellManager,
     pub ups: usize,
-    local_densities: Vec<f32>,
-    accelerations: Vec<Vector2D<f32>>,
-    previous_accelerations: Vec<Vector2D<f32>>,
+    densities: Densities,
+    accelerations: Accelerations,
+    previous_accelerations: Accelerations,
 }
 
 impl FluidSimulationApp {
     pub fn new(box_dimensions: [usize; 2]) -> Self {
         let mut rng = rand::thread_rng();
-        let particle_count = 6000;
         let ups: usize = 100;
         let delta_time = 1.0 / ups as f32;
         let pressure_multiplier: f32 = 800000.0;
         let target_density: f32 = 0.00003;
         let smoothing_radius: f32 = 14.0;
         let viscosity: f32 = 0.06;
-        let particles: Vec<Particle> = (0..particle_count)
-            .map(|index| {
-                Particle::new(
-                    index,
-                    Vector2D::new(
-                        rng.gen_range(0.0..(600 as f32)),
-                        rng.gen_range(0.0..(box_dimensions[1] as f32)),
-                    ),
-                )
-            })
-            .collect();
-        let local_densities: Vec<_> = particles.iter().map(|_| 0.001).collect();
-        let accelerations: Vec<_> = particles
-            .iter()
-            .map(|_| Vector2D { x: 0.0, y: 0.0 })
-            .collect();
-        let previous_accelerations: Vec<_> = accelerations.clone();
+        let particles: Particles = core::array::from_fn(|index| {
+            Particle::new(
+                index,
+                Vector2D::new(
+                    rng.gen_range(0.0..(600 as f32)),
+                    rng.gen_range(0.0..(box_dimensions[1] as f32)),
+                ),
+            )
+        });
+        let densities: Densities = core::array::from_fn(|i| 0.001);
+        let accelerations: Accelerations = core::array::from_fn(|i| Vector2D { x: 0.0, y: 0.0 });
+        let previous_accelerations: Accelerations = accelerations.clone();
         FluidSimulationApp {
             particles,
             ups,
-            local_densities,
+            densities,
             accelerations,
             previous_accelerations,
             dynamics_manager: ParticleDynamicsManager::new(true, delta_time),
@@ -64,7 +62,7 @@ impl FluidSimulationApp {
             ),
             external_attractor: ExternalAttractor::new(),
             collision_manager: CollisionManager::new(box_dimensions),
-            cell_manager: CellManager::new(particle_count as i32, box_dimensions, smoothing_radius),
+            cell_manager: CellManager::new(PARTICLE_COUNT as i32, box_dimensions, smoothing_radius),
         }
     }
 
@@ -81,7 +79,7 @@ impl FluidSimulationApp {
 
         self.cell_manager.update(&mut self.particles);
 
-        self.local_densities
+        self.densities
             .par_iter_mut()
             .enumerate()
             .for_each(|(index, density)| {
@@ -106,13 +104,13 @@ impl FluidSimulationApp {
                     index,
                     adjacente_particles_indices_iterator,
                     &self.particles,
-                    &self.local_densities,
+                    &self.densities,
                 );
                 new_acceleration += self
                     .external_attractor
                     .get_external_attraction_acceleration(
                         &self.particles[index],
-                        self.local_densities[index],
+                        self.densities[index],
                     );
                 *acceleration = new_acceleration;
             });
@@ -139,8 +137,8 @@ impl FluidSimulationApp {
 
         match event {
             Event::Input(Input::Move(Motion::MouseCursor(pos)), _) => {
-                    self.external_attractor.position = Vector2D::new(pos[0] as f32, pos[1] as f32);
-            },
+                self.external_attractor.position = Vector2D::new(pos[0] as f32, pos[1] as f32);
+            }
             _ => {}
         }
         if let Some(Button::Mouse(MouseButton::Left)) = event.release_args() {

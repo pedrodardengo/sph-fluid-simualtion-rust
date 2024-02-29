@@ -1,9 +1,11 @@
+use crate::fluid_simulation::config::{Particles, PARTICLE_COUNT};
 use crate::fluid_simulation::particle::Particle;
 use vector2d::Vector2D;
 
+type SpatialLookup = [(usize, usize); PARTICLE_COUNT];
 pub struct CellManager {
     particle_count: i32,
-    spatial_lookup: Vec<(usize, usize)>,
+    spatial_lookup: SpatialLookup,
     starting_indices: Vec<usize>,
     number_of_columns: i32,
     number_of_rows: i32,
@@ -19,9 +21,7 @@ impl CellManager {
         let number_of_cells = (number_of_columns * number_of_rows) as i32;
         CellManager {
             particle_count,
-            spatial_lookup: (0..particle_count)
-                .map(|_| (number_of_cells as usize, 0))
-                .collect(),
+            spatial_lookup: core::array::from_fn(|_| (number_of_cells as usize, 0)),
             starting_indices: (0..number_of_cells)
                 .map(|_| number_of_cells as usize)
                 .collect(),
@@ -32,10 +32,7 @@ impl CellManager {
         }
     }
 
-    pub fn update(&mut self, particles: &mut Vec<Particle>) {
-        self.spatial_lookup = (0..self.particle_count)
-            .map(|_| (self.number_of_cells as usize, 0))
-            .collect();
+    pub fn update(&mut self, particles: &mut Particles) {
         for particle in particles {
             self.to_spacial_lookup(particle)
         }
