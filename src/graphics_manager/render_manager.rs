@@ -1,5 +1,4 @@
 use crate::fluid_simulation::config::Particles;
-use crate::fluid_simulation::particle::Particle;
 use graphics::rectangle::rectangle_by_corners;
 use graphics::{
     math::{Matrix2d, Vec2d},

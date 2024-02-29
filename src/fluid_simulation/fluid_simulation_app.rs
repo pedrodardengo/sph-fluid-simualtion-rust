@@ -6,7 +6,7 @@ use crate::fluid_simulation::particle::Particle;
 use crate::fluid_simulation::particle_dynamics_manager::ParticleDynamicsManager;
 use crate::fluid_simulation::smoothed_interaction::SmoothedInteraction;
 use piston::{
-    Button, Event, Input, Key, Motion, MouseButton, MouseCursorEvent, PressEvent, ReleaseEvent,
+    Button, Event, Input, Key, Motion, MouseButton, PressEvent, ReleaseEvent,
     Window,
 };
 use rand::Rng;
@@ -44,8 +44,8 @@ impl FluidSimulationApp {
                 ),
             )
         });
-        let densities: Densities = core::array::from_fn(|i| 0.001);
-        let accelerations: Accelerations = core::array::from_fn(|i| Vector2D { x: 0.0, y: 0.0 });
+        let densities: Densities = core::array::from_fn(|_| 0.001);
+        let accelerations: Accelerations = core::array::from_fn(|_| Vector2D { x: 0.0, y: 0.0 });
         let previous_accelerations: Accelerations = accelerations.clone();
         FluidSimulationApp {
             particles,

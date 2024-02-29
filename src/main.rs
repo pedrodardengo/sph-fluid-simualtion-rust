@@ -1,9 +1,9 @@
 pub mod fluid_simulation;
-pub mod graphics;
+pub mod graphics_manager;
 
 use fluid_simulation::fluid_simulation_app::FluidSimulationApp;
 use glutin_window::GlutinWindow as Window;
-use graphics::render_manager::RenderManager;
+use graphics_manager::render_manager::RenderManager;
 use opengl_graphics::{GlGraphics, OpenGL};
 use piston::event_loop::{EventSettings, Events};
 use piston::input::{RenderEvent, UpdateEvent};
