@@ -1,29 +1,31 @@
+use super::obstacles::dam_obstacle::DamObstacle;
+use super::obstacles::obstacle_trait::Obstacle;
+use super::obstacles::rectangle_obstacle::RectangleObstacle;
 use crate::fluid_simulation::cell_manager::CellManager;
-use crate::fluid_simulation::collision_manager::CollisionManager;
 use crate::fluid_simulation::config::{Accelerations, Densities, Particles, PARTICLE_COUNT};
 use crate::fluid_simulation::external_attractor::ExternalAttractor;
+use crate::fluid_simulation::obstacle_collision_manager::ObstacleCollisionManager;
 use crate::fluid_simulation::particle::Particle;
 use crate::fluid_simulation::particle_dynamics_manager::ParticleDynamicsManager;
 use crate::fluid_simulation::smoothed_interaction::SmoothedInteraction;
-use piston::{
-    Button, Event, Input, Key, Motion, MouseButton, PressEvent, ReleaseEvent,
-    Window,
-};
+use piston::{Button, Event, Input, Key, Motion, MouseButton, PressEvent, ReleaseEvent, Window};
 use rand::Rng;
 use rayon::prelude::*;
+use std::time::{Duration, Instant};
 use vector2d::Vector2D;
-
 pub struct FluidSimulationApp {
     pub particles: Particles,
     dynamics_manager: ParticleDynamicsManager,
     smoothed_interaction: SmoothedInteraction,
     external_attractor: ExternalAttractor,
-    collision_manager: CollisionManager,
+    collision_manager: ObstacleCollisionManager,
     cell_manager: CellManager,
     pub ups: usize,
     densities: Densities,
     accelerations: Accelerations,
     previous_accelerations: Accelerations,
+    dam_obstacle: DamObstacle,
+    rectangle_obstacle: RectangleObstacle,
 }
 
 impl FluidSimulationApp {
@@ -34,7 +36,7 @@ impl FluidSimulationApp {
         let pressure_multiplier: f32 = 800000.0;
         let target_density: f32 = 0.00003;
         let smoothing_radius: f32 = 14.0;
-        let viscosity: f32 = 0.06;
+        let viscosity: f32 = 0.04;
         let particles: Particles = core::array::from_fn(|index| {
             Particle::new(
                 index,
@@ -46,13 +48,14 @@ impl FluidSimulationApp {
         });
         let densities: Densities = core::array::from_fn(|_| 0.001);
         let accelerations: Accelerations = core::array::from_fn(|_| Vector2D { x: 0.0, y: 0.0 });
-        let previous_accelerations: Accelerations = accelerations.clone();
+        let rectangle_obstacle: RectangleObstacle = RectangleObstacle::new(box_dimensions);
+        let dam_obstacle: DamObstacle = DamObstacle::new(box_dimensions);
         FluidSimulationApp {
             particles,
             ups,
             densities,
             accelerations,
-            previous_accelerations,
+            previous_accelerations: accelerations.clone(),
             dynamics_manager: ParticleDynamicsManager::new(true, delta_time),
             smoothed_interaction: SmoothedInteraction::new(
                 pressure_multiplier,
@@ -61,22 +64,32 @@ impl FluidSimulationApp {
                 viscosity,
             ),
             external_attractor: ExternalAttractor::new(),
-            collision_manager: CollisionManager::new(box_dimensions),
+            collision_manager: ObstacleCollisionManager::new(box_dimensions),
             cell_manager: CellManager::new(PARTICLE_COUNT as i32, box_dimensions, smoothing_radius),
+            dam_obstacle,
+            rectangle_obstacle,
         }
     }
 
     pub fn update(&mut self) {
+        //let start = Instant::now();
         self.particles
             .par_iter_mut()
             .enumerate()
             .for_each(|(index, particle)| {
-                //self.dynamics_manager.update_velocity(particle, self.accelerations[index], self.previous_accelerations[index]);
+                self.dynamics_manager.update_velocity(
+                    particle,
+                    self.accelerations[index],
+                    self.previous_accelerations[index],
+                );
                 self.dynamics_manager
                     .update_position(particle, self.accelerations[index]);
                 self.collision_manager.apply_boundary_conditions(particle);
+                self.dam_obstacle.apply_obstruction_boundary(particle);
+                self.rectangle_obstacle.apply_obstruction_boundary(particle);
             });
 
+        self.previous_accelerations = self.accelerations;
         self.cell_manager.update(&mut self.particles);
 
         self.densities
@@ -114,14 +127,7 @@ impl FluidSimulationApp {
                     );
                 *acceleration = new_acceleration;
             });
-        //self.previous_accelerations = self.accelerations.clone();
-        for i in 0..self.particles.len() {
-            self.dynamics_manager.update_velocity(
-                &mut self.particles[i],
-                self.accelerations[i],
-                &mut self.previous_accelerations[i],
-            );
-        }
+        //println!("Update: {:?}", start.elapsed());
     }
 
     pub fn handle_event(&mut self, event: Event, window: &impl Window) {
@@ -129,7 +135,7 @@ impl FluidSimulationApp {
             self.dynamics_manager.toggle_gravity();
         }
         if let Some(Button::Keyboard(Key::D)) = event.press_args() {
-            self.collision_manager.break_dam();
+            self.dam_obstacle.break_dam();
         }
         if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
             self.external_attractor.active = true;

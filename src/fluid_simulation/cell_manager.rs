@@ -1,4 +1,4 @@
-use crate::fluid_simulation::config::{Particles, PARTICLE_COUNT};
+use crate::fluid_simulation::config::PARTICLE_COUNT;
 use crate::fluid_simulation::particle::Particle;
 use vector2d::Vector2D;
 
@@ -32,7 +32,7 @@ impl CellManager {
         }
     }
 
-    pub fn update(&mut self, particles: &mut Particles) {
+    pub fn update(&mut self, particles: &mut [Particle]) {
         for particle in particles {
             self.to_spacial_lookup(particle)
         }

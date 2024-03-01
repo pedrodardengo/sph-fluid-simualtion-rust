@@ -17,7 +17,7 @@ where
     E: Iterator<Item = Vec2d>,
     F: FnMut(&[[f32; 2]]),
 {
-    let mut vertices: [[f32; 2]; 20000] = [[0.0; 2]; 20000];
+    let mut vertices: [[f32; 2]; 30000] = [[0.0; 2]; 30000];
     let mut i = 0;
     'read_vertices: loop {
         let p = match polygon.next() {
@@ -28,7 +28,7 @@ where
         vertices[ind_out] = [tx(m, p[0], p[1]), ty(m, p[0], p[1])];
         i += 1;
         // Buffer is full.
-        if (i + 1) > 20000 {
+        if (i + 1) > 30000 {
             // Send chunk and start over.
             f(&vertices[0..i]);
             i = 0;

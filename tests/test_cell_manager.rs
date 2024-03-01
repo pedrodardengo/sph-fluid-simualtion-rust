@@ -7,9 +7,9 @@ mod tests {
     fn test_update_cell_keys() {
         // ARRANGE
         let particle_count: usize = 9;
-        let box_dimensions: [i32; 2] = [3, 3];
+        let box_dimensions: [usize; 2] = [3, 3];
         let smoothing_radius: f32 = 0.5;
-        let particles: &mut Vec<Particle> = &mut vec![
+        let particles: &mut [Particle; 9] = &mut [
             Particle::new(0, Vector2D::new(0.5, 0.5)),
             Particle::new(1, Vector2D::new(0.5, 1.5)),
             Particle::new(2, Vector2D::new(0.5, 2.5)),
@@ -36,9 +36,9 @@ mod tests {
     fn test_get_adjancet_particles() {
         // ARRANGE
         let particle_count: usize = 9;
-        let box_dimensions: [i32; 2] = [3, 3];
+        let box_dimensions: [usize; 2] = [3, 3];
         let smoothing_radius: f32 = 0.5;
-        let particles: &mut Vec<Particle> = &mut vec![
+        let particles: &mut [Particle; 9] = &mut [
             Particle::new(0, Vector2D::new(0.5, 0.5)),
             Particle::new(1, Vector2D::new(0.5, 1.5)),
             Particle::new(2, Vector2D::new(0.5, 2.5)),

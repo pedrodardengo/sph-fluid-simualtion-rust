@@ -49,10 +49,7 @@ fn main() {
 
     while let Some(e) = events.next(&mut window) {
         if let Some(args) = e.render_args() {
-            //let start = Instant::now();
             renderer.render(&args, &simulation.particles);
-            //total_elapsed_time += start.elapsed();
-            //counter += 1;
         }
 
         if let Some(_) = e.update_args() {
@@ -65,11 +62,8 @@ fn main() {
         simulation.handle_event(e, &window);
 
         if counter >= num_executions {
-            // Calculate and print the average time
             let average_time = total_elapsed_time / num_executions as u32;
             println!("Average Time: {:?}", average_time);
-
-            // Reset counters
             counter = 0;
             total_elapsed_time = Duration::from_secs(0);
         }

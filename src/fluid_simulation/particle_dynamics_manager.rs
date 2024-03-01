@@ -22,18 +22,17 @@ impl ParticleDynamicsManager {
         &self,
         particle: &mut Particle,
         acceleration: Vector2D<f32>,
-        previous_acceleration: &mut Vector2D<f32>,
+        previous_acceleration: Vector2D<f32>,
     ) {
         let gravity: Vector2D<f32> =
-            Vector2D::new(0.0, if self.is_gravity_on { 490.0 } else { 0.0 });
+            Vector2D::new(0.0, if self.is_gravity_on { 980.0 } else { 0.0 });
         let acceleration = gravity + acceleration;
-        particle.velocity += (acceleration + *previous_acceleration) * self.delta_time * 0.5;
-        *previous_acceleration = acceleration;
+        particle.velocity += (acceleration + previous_acceleration) * self.delta_time * 0.5;
     }
 
     pub fn update_position(&self, particle: &mut Particle, acceleration: Vector2D<f32>) {
         let gravity: Vector2D<f32> =
-            Vector2D::new(0.0, if self.is_gravity_on { 490.0 } else { 0.0 });
+            Vector2D::new(0.0, if self.is_gravity_on { 980.0 } else { 0.0 });
         let acceleration = gravity + acceleration;
         particle.position +=
             particle.velocity * self.delta_time + acceleration * 0.5 * self.delta_time.powi(2);
